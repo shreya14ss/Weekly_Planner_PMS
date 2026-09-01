@@ -1,0 +1,127 @@
+<div class="min-h-screen flex flex-col">
+  <!-- Top bar -->
+  <header
+    class="bg-gradient-to-br from-rbh-navy to-rbh-navy2 text-white shadow-lg border-b-2 border-rbh-accent sticky top-0 z-40"
+  >
+    <div class="flex items-center justify-between px-5 py-2.5 flex-wrap gap-3">
+      <!-- Brand -->
+      <div class="flex items-center gap-3">
+        <div
+          class="w-10 h-10 rounded-lg bg-rbh-accent text-rbh-navy grid place-items-center font-black text-lg"
+        >
+          RBH
+        </div>
+        <div>
+          <div class="text-sm font-bold leading-tight">
+            RBH Solutions
+            <span class="ml-1 font-normal opacity-60 text-[11px] tracking-wide"
+              >Weekly Project Status</span
+            >
+          </div>
+          <div class="text-[10px] opacity-55 tracking-wider uppercase">
+            SCADA &amp; Industrial Automation · Patiala, India
+          </div>
+        </div>
+      </div>
+
+      <!-- User + sync -->
+      <div class="flex items-center gap-3">
+        <p-tag
+          [value]="'Sync: ' + syncStatus()"
+          [severity]="syncSeverity()"
+          [rounded]="true"
+          pTooltip="Live sync with team database"
+          tooltipPosition="bottom"
+        />
+
+        <div
+          class="flex items-center gap-2 bg-white/10 border border-white/20 rounded-full pr-3 pl-1 py-1"
+        >
+          <p-avatar
+            [label]="initials()"
+            shape="circle"
+            [style]="{
+              'background-color': isPM() ? '#E8721A' : '#2563EB',
+              color: isPM() ? '#0A1628' : '#fff',
+              'font-weight': 800,
+              'font-size': '11px',
+              width: '28px',
+              height: '28px',
+            }"
+          />
+          <span class="text-sm font-semibold max-w-[140px] truncate">{{ user()?.name }}</span>
+          <p-tag
+            [value]="roleLabel()"
+            [severity]="isPM() ? 'warn' : isTL() ? 'info' : 'secondary'"
+            [rounded]="true"
+          />
+        </div>
+
+        <p-button
+          icon="pi pi-sign-out"
+          label="Sign Out"
+          severity="secondary"
+          [text]="true"
+          size="small"
+          class="!text-white/80 hover:!text-white"
+          (onClick)="logout()"
+        />
+      </div>
+    </div>
+
+    <!-- Nav tabs -->
+    <nav class="bg-rbh-navy2 flex px-5 gap-1 flex-wrap border-t border-white/5">
+      <a
+        routerLink="/app/dashboard"
+        routerLinkActive="text-white border-rbh-accent"
+        class="px-4 py-2.5 text-sm font-semibold text-white/60 hover:text-white border-b-[3px] border-transparent transition flex items-center gap-2"
+      >
+        <i class="pi pi-chart-bar"></i> Dashboard
+      </a>
+      <a
+        routerLink="/app/projects"
+        routerLinkActive="text-white border-rbh-accent"
+        class="px-4 py-2.5 text-sm font-semibold text-white/60 hover:text-white border-b-[3px] border-transparent transition flex items-center gap-2"
+      >
+        <i class="pi pi-briefcase"></i> Projects
+      </a>
+      <a
+        routerLink="/app/alerts"
+        routerLinkActive="text-white border-rbh-accent"
+        class="px-4 py-2.5 text-sm font-semibold text-white/60 hover:text-white border-b-[3px] border-transparent transition flex items-center gap-2"
+      >
+        <i class="pi pi-bell"></i> Alerts
+      </a>
+      <a
+        routerLink="/app/completed"
+        routerLinkActive="text-white border-rbh-accent"
+        class="px-4 py-2.5 text-sm font-semibold text-white/60 hover:text-white border-b-[3px] border-transparent transition flex items-center gap-2"
+      >
+        <i class="pi pi-check-circle"></i> Completed
+      </a>
+      @if (isPM()) {
+        <a
+          routerLink="/app/users"
+          routerLinkActive="text-white border-rbh-accent"
+          class="px-4 py-2.5 text-sm font-semibold text-white/60 hover:text-white border-b-[3px] border-transparent transition flex items-center gap-2"
+        >
+          <i class="pi pi-users"></i> Users
+        </a>
+      }
+      @if (isPM() || isTL()) {
+        <a
+          routerLink="/app/history"
+          routerLinkActive="text-white border-rbh-accent"
+          class="px-4 py-2.5 text-sm font-semibold text-white/60 hover:text-white border-b-[3px] border-transparent transition flex items-center gap-2"
+        >
+          <i class="pi pi-history"></i> History
+        </a>
+      }
+    </nav>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 max-w-[1380px] mx-auto w-full p-4 pb-20">
+    <router-outlet />
+  </main>
+</div>

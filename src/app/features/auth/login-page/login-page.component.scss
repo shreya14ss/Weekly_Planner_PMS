@@ -1,0 +1,16 @@
+:host {
+  display: block;
+}
+
+/* Center the PIN input digits and give them breathing room */
+:host ::ng-deep .p-inputotp {
+  gap: 0.5rem;
+
+  .p-inputotp-input {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-align: center;
+  }
+}

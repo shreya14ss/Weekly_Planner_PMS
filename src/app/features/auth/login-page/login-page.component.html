@@ -1,0 +1,91 @@
+<div
+  class="fixed inset-0 flex items-center justify-center p-5"
+  style="background: linear-gradient(135deg, #0a1628 0%, #0d2040 50%, #081828 100%)"
+>
+  <div class="bg-white rounded-2xl p-9 w-full max-w-md shadow-2xl">
+    <!-- Brand -->
+    <div class="flex items-center gap-3 mb-7">
+      <div
+        class="w-11 h-11 rounded-xl bg-rbh-accent text-rbh-navy grid place-items-center font-black text-2xl"
+      >
+        RBH
+      </div>
+      <div>
+        <div class="text-base font-extrabold text-rbh-navy">RBH Solutions</div>
+        <div class="text-[10px] text-slate-500 tracking-widest uppercase mt-0.5">
+          SCADA &amp; Industrial Automation
+        </div>
+      </div>
+    </div>
+
+    <h1 class="text-2xl font-extrabold text-rbh-navy mb-1.5">Sign In</h1>
+    <p class="text-sm text-slate-500 mb-6">Select your name and enter your PIN to continue</p>
+
+    <!-- Name -->
+    <label
+      for="loginUser"
+      class="block text-[10.5px] font-bold tracking-wider uppercase text-slate-500 mb-1.5"
+    >
+      Your Name
+    </label>
+    <p-select
+      inputId="loginUser"
+      [options]="userOptions()"
+      optionLabel="label"
+      optionValue="id"
+      placeholder="— Select your name —"
+      [ngModel]="selectedUserId()"
+      (ngModelChange)="selectedUserId.set($event)"
+      class="w-full mb-4 block"
+      [filter]="true"
+      filterBy="label"
+      appendTo="body"
+    />
+
+    <!-- PIN -->
+    <label
+      for="loginPin"
+      class="block text-[10.5px] font-bold tracking-wider uppercase text-slate-500 mb-1.5"
+    >
+      PIN (4 digits)
+    </label>
+    <div id="loginPin" class="mb-4 flex justify-center">
+      <p-input-otp
+        [ngModel]="pin()"
+        (ngModelChange)="pin.set($event)"
+        [integerOnly]="true"
+        [length]="4"
+        [mask]="true"
+      />
+    </div>
+
+    <p-button
+      label="Sign In →"
+      [loading]="submitting()"
+      [disabled]="!canSubmit()"
+      class="w-full block"
+      severity="primary"
+      (onClick)="submit()"
+    />
+
+    @if (error()) {
+      <p-message severity="error" class="w-full mt-3 block">{{ error() }}</p-message>
+    }
+
+    <div
+      class="mt-3.5 bg-sky-50 border border-sky-200 rounded-md p-2.5 text-xs text-sky-900 leading-relaxed"
+    >
+      <b class="text-sky-700">First time?</b> Default PIN for PM is <b>0000</b>, others is
+      <b>1234</b>. Change your PIN after login.
+    </div>
+
+    <div class="text-center mt-4 pt-3.5 border-t border-slate-100">
+      <div class="text-[10px] text-slate-400 tracking-wide">
+        RBH Solutions Pvt. Ltd. · SCO 06, Urban Estate, Phase 2, Patiala
+      </div>
+      <div class="text-[10px] text-slate-400 mt-0.5">
+        Technology-driven Automation &amp; Control Solutions
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,21 @@
+services:
+  couchdb:
+    image: couchdb:3.4
+    container_name: rbh-wpr-couchdb
+    restart: unless-stopped
+    ports:
+      - '5984:5984'
+    environment:
+      # Dev-only credentials. Do NOT reuse in prod.
+      COUCHDB_USER: admin
+      COUCHDB_PASSWORD: devpassword
+    volumes:
+      - couch-data:/opt/couchdb/data
+      - couch-conf:/opt/couchdb/etc/local.d
+      # CORS override so the Angular dev server (http://localhost:4200)
+      # can talk to CouchDB directly.
+      - ./ops/couch/local.ini:/opt/couchdb/etc/local.d/00-app.ini:ro
+
+volumes:
+  couch-data:
+  couch-conf:
