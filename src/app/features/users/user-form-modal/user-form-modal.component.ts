@@ -138,6 +138,27 @@ export class UserFormModalComponent {
     return true;
   });
 
+  /**
+   * True if the form differs from the original editing target.
+   * Always true in add mode. In edit / change-pin mode, entering a
+   * PIN counts as a change even if other fields are untouched.
+   */
+  readonly hasChanges = computed(() => {
+    const u = this.editing();
+    if (!u) return true;
+    if (this.pin().length > 0) return true; // any PIN entry = intent to change
+    if (this.mode() === 'change-pin') return false;
+    if ((u.name ?? '') !== this.name().trim()) return true;
+    if (u.role !== this.role()) return true;
+    if ((u.email ?? '') !== this.email().trim()) return true;
+    if ((u.mobile ?? '') !== this.mobile().trim()) return true;
+    return false;
+  });
+
+  readonly saveDisabled = computed(
+    () => !this.canSave() || !this.hasChanges() || this.submitting(),
+  );
+
   constructor() {
     effect(() => {
       if (!this.visible()) return;

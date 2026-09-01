@@ -104,6 +104,29 @@ export class AddProjectModalComponent {
       !!this.status(),
   );
 
+  /**
+   * True if any field differs from the original editing target.
+   * Always true in add mode (there's nothing to compare against).
+   */
+  readonly hasChanges = computed(() => {
+    const p = this.editing();
+    if (!p) return true;
+    if (p.client !== this.client().trim()) return true;
+    const originalName = p.name === '—' ? '' : p.name;
+    if (originalName !== this.name().trim()) return true;
+    if (!arrayEq(p.engineers, this.engineers().filter((e) => e.trim()))) return true;
+    if (!arrayEq(p.tls, this.tls().filter((t) => t.trim()))) return true;
+    if ((p.status ?? '') !== this.status()) return true;
+    if ((p.desc ?? '') !== this.desc().trim()) return true;
+    if ((p.remarks ?? '') !== this.remarks().trim()) return true;
+    return false;
+  });
+
+  /** Convenience for the template. */
+  readonly saveDisabled = computed(
+    () => !this.canSave() || !this.hasChanges() || this.submitting(),
+  );
+
   constructor() {
     // Sync form fields whenever the dialog opens or the editing target
     // changes. Reset to blanks on close so re-opens don't leak state.
@@ -216,4 +239,13 @@ export class AddProjectModalComponent {
   cancel(): void {
     this.visible.set(false);
   }
+}
+
+/** Order-insensitive string array equality. */
+function arrayEq(a: readonly string[], b: readonly string[]): boolean {
+  if (a.length !== b.length) return false;
+  const s1 = [...a].sort();
+  const s2 = [...b].sort();
+  for (let i = 0; i < s1.length; i++) if (s1[i] !== s2[i]) return false;
+  return true;
 }

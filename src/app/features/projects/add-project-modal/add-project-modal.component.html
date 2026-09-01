@@ -177,7 +177,7 @@
       icon="pi pi-check"
       severity="primary"
       [loading]="submitting()"
-      [disabled]="!canSave() || submitting()"
+      [disabled]="saveDisabled()"
       (onClick)="save()"
     />
   </ng-template>
