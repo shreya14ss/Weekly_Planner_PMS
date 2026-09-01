@@ -43,6 +43,28 @@
     <span class="text-slate-500 text-sm whitespace-nowrap">
       {{ totalVisible() }} project{{ totalVisible() === 1 ? '' : 's' }}
     </span>
+    <p-button
+      icon="pi pi-download"
+      label="Excel Report"
+      severity="success"
+      size="small"
+      [outlined]="true"
+      pTooltip="Download the current week as a full spreadsheet"
+      tooltipPosition="bottom"
+      [disabled]="totalVisible() === 0"
+      (onClick)="exportWeeklyReport()"
+    />
+    <p-button
+      icon="pi pi-list"
+      label="Project List"
+      severity="secondary"
+      size="small"
+      [outlined]="true"
+      pTooltip="Download just the project directory"
+      tooltipPosition="bottom"
+      [disabled]="totalVisible() === 0"
+      (onClick)="exportProjectList()"
+    />
     @if (auth.isPM() || auth.isTL()) {
       <p-button
         label="Add Project"

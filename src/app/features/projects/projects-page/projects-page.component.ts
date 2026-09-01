@@ -11,6 +11,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ProjectDoc } from '@models/project';
 import { AuthService } from '@core/services/auth.service';
 import { WeekStateService } from '@core/services/week-state.service';
+import { ExportService } from '@core/services/export.service';
 import { ProjectFilterService } from '@features/projects/project-filter.service';
 import { AddProjectModalComponent } from '@features/projects/add-project-modal/add-project-modal.component';
 import { ProjectCardComponent } from '@features/projects/project-card/project-card.component';
@@ -49,6 +50,7 @@ export class ProjectsPageComponent {
   protected readonly auth = inject(AuthService);
   protected readonly filter = inject(ProjectFilterService);
   protected readonly state = inject(WeekStateService);
+  private readonly export_ = inject(ExportService);
 
   protected readonly search = signal('');
   protected readonly modalOpen = signal(false);
@@ -92,6 +94,19 @@ export class ProjectsPageComponent {
   openAdd(): void {
     this.editing.set(null);
     this.modalOpen.set(true);
+  }
+
+  /** Scope respects the active filters + search, so exports match the view. */
+  private currentScope(): ProjectDoc[] {
+    return this.groups().flatMap((g) => g.projects);
+  }
+
+  exportWeeklyReport(): void {
+    this.export_.exportWeeklyReport(this.currentScope());
+  }
+
+  exportProjectList(): void {
+    this.export_.exportProjectList(this.currentScope());
   }
 
   openEdit(p: ProjectDoc): void {
