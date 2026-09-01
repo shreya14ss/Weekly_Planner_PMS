@@ -61,4 +61,33 @@ export class WeekRepository {
     const docs = await this.db.allByType<WeekDoc>('week');
     return docs.map((d) => d.weekStart).sort();
   }
+
+  /**
+   * Persist a single project's entry for the given week. Reads the week
+   * doc, merges in the entry, and writes it back. Falls back to
+   * `save(...)` semantics — same guards apply.
+   */
+  async upsertEntry(
+    weekStart: IsoDate,
+    projectId: string,
+    entry: ProjectWeekEntry,
+  ): Promise<WeekDoc> {
+    const existing = await this.load(weekStart);
+    const entries: Record<string, ProjectWeekEntry> = {
+      ...(existing?.entries ?? {}),
+      [projectId]: entry,
+    };
+    return this.save(weekStart, entries, { allowEmpty: false });
+  }
+
+  async removeEntry(weekStart: IsoDate, projectId: string): Promise<void> {
+    const existing = await this.load(weekStart);
+    if (!existing?.entries?.[projectId]) return;
+    const entries = { ...existing.entries };
+    delete entries[projectId];
+    // If we just emptied the week, keep the doc intact rather than
+    // deleting — save with the explicit opt-in so downstream code still
+    // treats "no entries" as a valid state.
+    await this.save(weekStart, entries, { allowEmpty: true });
+  }
 }

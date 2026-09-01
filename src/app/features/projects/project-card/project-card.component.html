@@ -1,0 +1,211 @@
+<article
+  class="project-card"
+  [class.expanded]="expanded()"
+  [class.filled]="!!(entry().weeklyTarget || entry().description || entry().status || entry().targetDate)"
+  [class.readonly]="!canEdit()"
+>
+  <!-- Row header: clickable area toggles, action buttons live outside it -->
+  <header class="row">
+    <div
+      class="row-target"
+      role="button"
+      tabindex="0"
+      [attr.aria-expanded]="expanded()"
+      [attr.aria-label]="'Toggle ' + displayName()"
+      (click)="toggle()"
+      (keydown.enter)="toggle(); $event.preventDefault()"
+      (keydown.space)="toggle(); $event.preventDefault()"
+    >
+      <div class="col-client">
+        <span class="client-tag">{{ project().client }}</span>
+      </div>
+
+      <div class="col-info min-w-0">
+        <div class="proj-name truncate">{{ displayName() }}</div>
+        <div class="proj-engs truncate">
+          @if (project().tls.length) {
+            <span class="tl-tag">TL: {{ project().tls.join(', ') }}</span>
+          }
+          {{ engineerLine() }}
+        </div>
+      </div>
+
+      <div class="col-status">
+        <app-status-chip [status]="effectiveStatus()" />
+      </div>
+    </div>
+
+    <div class="col-actions">
+      @if (auth.isPM() || auth.isTL()) {
+        <p-button
+          icon="pi pi-pencil"
+          [rounded]="true"
+          [text]="true"
+          size="small"
+          severity="secondary"
+          pTooltip="Edit project"
+          tooltipPosition="left"
+          (onClick)="onEdit($event)"
+        />
+      }
+      <p-button
+        [icon]="expanded() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+        [rounded]="true"
+        [text]="true"
+        size="small"
+        severity="secondary"
+        [attr.aria-label]="expanded() ? 'Collapse' : 'Expand'"
+        (onClick)="toggle()"
+      />
+    </div>
+  </header>
+
+  @if (isDirty()) {
+    <div class="dirty-bar">
+      <span class="flex items-center gap-2 text-amber-800 font-semibold text-[13px]">
+        <i class="pi pi-exclamation-triangle"></i>
+        Unsaved changes
+      </span>
+      <p-button
+        label="Discard"
+        icon="pi pi-times"
+        severity="secondary"
+        [text]="true"
+        size="small"
+        (onClick)="discard()"
+      />
+      <p-button
+        label="Save"
+        icon="pi pi-save"
+        severity="success"
+        size="small"
+        (onClick)="save()"
+      />
+    </div>
+  }
+
+  @if (expanded()) {
+    <section class="form">
+      @if (lastEditAt(); as ts) {
+        <div class="meta-strip">
+          <i class="pi pi-pencil text-slate-400"></i>
+          <span>
+            Last updated by
+            <strong class="text-slate-800">{{ entry()._lastEditBy || 'Unknown' }}</strong>
+            &nbsp;·&nbsp;
+            {{ ts | date: 'dd MMM yyyy, HH:mm' }}
+          </span>
+          @if (!canEdit()) {
+            <p-tag value="View only" severity="warn" [rounded]="true" class="ml-auto" />
+          }
+        </div>
+      } @else if (!canEdit()) {
+        <div class="meta-strip">
+          <i class="pi pi-lock text-slate-400"></i>
+          <span>This project is assigned to another engineer.</span>
+          <p-tag value="View only" severity="warn" [rounded]="true" class="ml-auto" />
+        </div>
+      }
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label [attr.for]="'pc_target_' + project()._id" class="fld-label">Target Date</label>
+          <p-datepicker
+            [inputId]="'pc_target_' + project()._id"
+            [ngModel]="targetDateValue()"
+            (ngModelChange)="onTargetDateChange($event)"
+            [readonlyInput]="!canEdit()"
+            [showIcon]="true"
+            iconDisplay="input"
+            dateFormat="dd M yy"
+            appendTo="body"
+            class="w-full"
+          />
+        </div>
+        <div>
+          <label [attr.for]="'pc_target_txt_' + project()._id" class="fld-label">Weekly Target</label>
+          <input
+            [id]="'pc_target_txt_' + project()._id"
+            pInputText
+            type="text"
+            placeholder="What to achieve this week…"
+            [ngModel]="entry().weeklyTarget ?? ''"
+            (ngModelChange)="onFieldChange('weeklyTarget', $event)"
+            [readonly]="!canEdit()"
+            class="w-full"
+          />
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <label [attr.for]="'pc_desc_' + project()._id" class="fld-label">Work Detailed Description</label>
+        <textarea
+          [id]="'pc_desc_' + project()._id"
+          pTextarea
+          rows="3"
+          placeholder="Describe work done / in progress…"
+          [ngModel]="entry().description ?? ''"
+          (ngModelChange)="onFieldChange('description', $event)"
+          [readonly]="!canEdit()"
+          class="w-full"
+        ></textarea>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label [attr.for]="'pc_status_' + project()._id" class="fld-label">Status</label>
+          <p-select
+            [inputId]="'pc_status_' + project()._id"
+            [options]="statusOptions"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="effectiveStatus()"
+            (ngModelChange)="onStatusChange($event)"
+            [disabled]="!canEdit()"
+            placeholder="Select…"
+            [showClear]="true"
+            class="w-full"
+            appendTo="body"
+          />
+        </div>
+        <div>
+          <label [attr.for]="'pc_remarks_' + project()._id" class="fld-label">Remarks</label>
+          <input
+            [id]="'pc_remarks_' + project()._id"
+            pInputText
+            type="text"
+            placeholder="Notes…"
+            [ngModel]="entry().remarks ?? project().remarks ?? ''"
+            (ngModelChange)="onFieldChange('remarks', $event)"
+            [readonly]="!canEdit()"
+            class="w-full"
+          />
+        </div>
+      </div>
+
+      @if (isDirty()) {
+        <div class="save-bar-inline">
+          <p-button
+            label="Discard"
+            icon="pi pi-times"
+            severity="secondary"
+            [text]="true"
+            (onClick)="discard()"
+          />
+          <p-button
+            label="Save Changes"
+            icon="pi pi-save"
+            severity="success"
+            (onClick)="save()"
+          />
+        </div>
+      }
+
+      <div class="text-[11px] text-slate-400 italic mt-3">
+        Full weekly-task management (status pills, assignees, due dates, carry-forward) lands in the next iteration.
+      </div>
+    </section>
+  }
+</article>

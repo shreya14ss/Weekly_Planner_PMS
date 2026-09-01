@@ -1,0 +1,183 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [header]="title()"
+  [modal]="true"
+  [style]="{ width: '560px' }"
+  [breakpoints]="{ '640px': '95vw' }"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+>
+  <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()">
+    <!-- Client -->
+    <div>
+      <label
+        for="ap_client"
+        class="text-[11px] font-bold tracking-wider uppercase text-slate-500 mb-1.5 block"
+      >
+        Client <span class="text-rose-600">*</span>
+      </label>
+      <p-autoComplete
+        inputId="ap_client"
+        [ngModel]="client()"
+        (ngModelChange)="client.set($event)"
+        [suggestions]="clientSuggestions()"
+        (completeMethod)="searchClients($event)"
+        [dropdown]="true"
+        [forceSelection]="false"
+        name="client"
+        placeholder="e.g. BHEL, OPTCL, AEGCL…"
+        class="w-full"
+      />
+    </div>
+
+    <!-- Project name -->
+    <div>
+      <label
+        for="ap_name"
+        class="text-[11px] font-bold tracking-wider uppercase text-slate-500 mb-1.5 block"
+      >
+        Project Name
+      </label>
+      <input
+        id="ap_name"
+        pInputText
+        type="text"
+        name="name"
+        [ngModel]="name()"
+        (ngModelChange)="name.set($event)"
+        placeholder="e.g. 220-33 KV AIS NAGPUR GSS"
+        class="w-full"
+      />
+    </div>
+
+    <!-- Engineers -->
+    <div>
+      <label
+        for="ap_engineers"
+        class="text-[11px] font-bold tracking-wider uppercase text-slate-500 mb-1.5 block"
+      >
+        Assigned Engineers
+      </label>
+      <input
+        id="ap_engineers"
+        pInputText
+        type="text"
+        name="engineers"
+        [ngModel]="engineers().join(', ')"
+        (ngModelChange)="onEngineersInput($event)"
+        placeholder="Name 1, Name 2…"
+        class="w-full"
+      />
+      <div class="text-[11px] text-slate-500 mt-1">Separate multiple names with a comma.</div>
+    </div>
+
+    <!-- TLs -->
+    <div>
+      <label
+        for="ap_tls"
+        class="text-[11px] font-bold tracking-wider uppercase text-slate-500 mb-1.5 block"
+      >
+        Team Leaders (TL)
+      </label>
+      <p-multiSelect
+        inputId="ap_tls"
+        [options]="tlOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="tls()"
+        (ngModelChange)="tls.set($event)"
+        name="tls"
+        display="chip"
+        placeholder="Choose TLs responsible for this project"
+        class="w-full"
+        [filter]="true"
+        appendTo="body"
+      />
+      <div class="text-[11px] text-slate-500 mt-1">
+        Selected TLs are automatically added to the engineer list.
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <!-- Status -->
+      <div>
+        <label
+          for="ap_status"
+          class="text-[11px] font-bold tracking-wider uppercase text-slate-500 mb-1.5 block"
+        >
+          Current Status
+        </label>
+        <p-select
+          inputId="ap_status"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="status()"
+          (ngModelChange)="status.set($event)"
+          name="status"
+          placeholder="Select…"
+          class="w-full"
+          [showClear]="true"
+          appendTo="body"
+        />
+      </div>
+
+      <!-- Remarks -->
+      <div>
+        <label
+          for="ap_remarks"
+          class="text-[11px] font-bold tracking-wider uppercase text-slate-500 mb-1.5 block"
+        >
+          Remarks
+        </label>
+        <input
+          id="ap_remarks"
+          pInputText
+          type="text"
+          name="remarks"
+          [ngModel]="remarks()"
+          (ngModelChange)="remarks.set($event)"
+          placeholder="Optional notes"
+          class="w-full"
+        />
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div>
+      <label
+        for="ap_desc"
+        class="text-[11px] font-bold tracking-wider uppercase text-slate-500 mb-1.5 block"
+      >
+        Initial Description
+      </label>
+      <textarea
+        id="ap_desc"
+        pTextarea
+        name="desc"
+        rows="2"
+        [ngModel]="desc()"
+        (ngModelChange)="desc.set($event)"
+        placeholder="Optional context that stays across weeks"
+        class="w-full"
+      ></textarea>
+    </div>
+
+    @if (error()) {
+      <p-message severity="error">{{ error() }}</p-message>
+    }
+  </form>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="cancel()" />
+    <p-button
+      [label]="isEdit() ? 'Save Changes' : 'Add Project'"
+      icon="pi pi-check"
+      severity="primary"
+      [loading]="submitting()"
+      (onClick)="save()"
+    />
+  </ng-template>
+</p-dialog>

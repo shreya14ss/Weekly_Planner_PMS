@@ -24,8 +24,10 @@
         </div>
       </div>
 
-      <!-- User + sync -->
+      <!-- Week nav + user + sync -->
       <div class="flex items-center gap-3">
+        <app-week-nav />
+
         <p-tag
           [value]="'Sync: ' + syncStatus()"
           [severity]="syncSeverity()"

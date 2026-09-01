@@ -9,6 +9,7 @@ import { TooltipModule } from 'primeng/tooltip';
 
 import { AuthService } from '@core/services/auth.service';
 import { DatabaseService } from '@core/pouchdb/database.service';
+import { WeekNavComponent } from '@shared/components/week-nav/week-nav.component';
 
 @Component({
   selector: 'app-shell',
@@ -22,6 +23,7 @@ import { DatabaseService } from '@core/pouchdb/database.service';
     ButtonModule,
     TagModule,
     TooltipModule,
+    WeekNavComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app-shell.component.html',
