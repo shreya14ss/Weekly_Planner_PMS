@@ -185,6 +185,10 @@
         </div>
       </div>
 
+      <hr class="divider" />
+
+      <app-task-list [project]="project()" />
+
       @if (isDirty()) {
         <div class="save-bar-inline">
           <p-button
@@ -204,7 +208,7 @@
       }
 
       <div class="text-[11px] text-slate-400 italic mt-3">
-        Full weekly-task management (status pills, assignees, due dates, carry-forward) lands in the next iteration.
+        Due dates, quick-set buttons and carry-forward come in the next drop.
       </div>
     </section>
   }

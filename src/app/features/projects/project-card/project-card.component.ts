@@ -24,6 +24,7 @@ import { AuthService } from '@core/services/auth.service';
 import { WeekStateService } from '@core/services/week-state.service';
 import { canEditProject } from '@core/services/project-permissions';
 import { StatusChipComponent } from '@shared/components/status-chip/status-chip.component';
+import { TaskListComponent } from '@features/projects/task-list/task-list.component';
 
 /**
  * A single project row + its expandable weekly form.
@@ -46,6 +47,7 @@ import { StatusChipComponent } from '@shared/components/status-chip/status-chip.
     TagModule,
     TooltipModule,
     StatusChipComponent,
+    TaskListComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './project-card.component.html',

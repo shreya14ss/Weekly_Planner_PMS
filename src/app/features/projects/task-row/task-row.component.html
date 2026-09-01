@@ -1,0 +1,62 @@
+<div class="task-row" [class]="rowClass()">
+  <!-- Header line: index + name + remove -->
+  <div class="task-head">
+    <span class="task-num">{{ index() + 1 }}</span>
+    <input
+      pInputText
+      type="text"
+      class="task-name"
+      placeholder="Describe the task…"
+      [ngModel]="task().name"
+      (ngModelChange)="onNameChange($event)"
+      [readonly]="!canEdit()"
+    />
+    @if (canManage()) {
+      <p-button
+        icon="pi pi-times"
+        [rounded]="true"
+        [text]="true"
+        severity="danger"
+        size="small"
+        pTooltip="Remove task"
+        tooltipPosition="left"
+        (onClick)="onRemove()"
+      />
+    }
+  </div>
+
+  <!-- Status pills -->
+  <div class="row-line">
+    <span class="line-label">Status</span>
+    <app-task-status-pills
+      [status]="task().status || 'not-started'"
+      [disabled]="!canEdit()"
+      (statusChange)="onStatusChange($event)"
+    />
+  </div>
+
+  <!-- Remark -->
+  <div class="row-line">
+    <span class="line-label">Remark</span>
+    <input
+      pInputText
+      type="text"
+      class="flex-1"
+      placeholder="Reason, blocker, or note…"
+      [ngModel]="task().remark ?? ''"
+      (ngModelChange)="onRemarkChange($event)"
+      [readonly]="!canEdit()"
+    />
+  </div>
+
+  <!-- Assignees -->
+  <div class="row-line">
+    <span class="line-label">Assign</span>
+    <app-task-assignees
+      class="flex-1"
+      [assignees]="task().assignedTo"
+      [disabled]="!canManage()"
+      (assigneesChange)="onAssigneesChange($event)"
+    />
+  </div>
+</div>

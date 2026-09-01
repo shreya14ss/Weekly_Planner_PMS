@@ -1,0 +1,84 @@
+<section class="task-list">
+  <header class="tl-header">
+    <div>
+      <div class="tl-title">
+        <i class="pi pi-list-check text-slate-500"></i>
+        Weekly Tasks
+        @if (counts().total > 0) {
+          <span class="tl-count">{{ counts().total }}</span>
+        }
+      </div>
+      <div class="tl-sub">
+        Break the week into small deliverables. Each row is trackable and assignable.
+      </div>
+    </div>
+    @if (canManage()) {
+      <p-button
+        icon="pi pi-plus"
+        label="Add Task"
+        severity="primary"
+        size="small"
+        (onClick)="addTask()"
+      />
+    }
+  </header>
+
+  @if (tasks().length === 0) {
+    <div class="tl-empty">
+      <i class="pi pi-inbox text-3xl text-slate-300 mb-2 block"></i>
+      <div class="text-sm text-slate-500">
+        @if (canManage()) {
+          No tasks yet — click <b>Add Task</b> to get started.
+        } @else {
+          No tasks added for this week yet.
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="tl-rows">
+      @for (task of tasks(); track task.id; let i = $index) {
+        <app-task-row [project]="project()" [task]="task" [index]="i" />
+      }
+    </div>
+
+    <!-- Summary strip -->
+    <div class="tl-summary">
+      <div class="tl-bar">
+        @for (seg of segments(); track $index) {
+          <div class="tl-seg" [style.width.%]="seg.width" [style.background]="seg.color"></div>
+        }
+      </div>
+      <div class="tl-summary-text">
+        <strong class="text-slate-800">{{ counts().done }}/{{ counts().total }}</strong>
+        <span class="text-slate-500">done · {{ progressPct() }}%</span>
+      </div>
+      <div class="tl-counts">
+        @if (counts().done > 0) {
+          <span class="tc tc-done">
+            <i class="pi pi-check"></i>{{ counts().done }} Done
+          </span>
+        }
+        @if (counts().inProgress > 0) {
+          <span class="tc tc-ip">
+            <i class="pi pi-spinner"></i>{{ counts().inProgress }} Active
+          </span>
+        }
+        @if (counts().hold > 0) {
+          <span class="tc tc-hold">
+            <i class="pi pi-pause"></i>{{ counts().hold }} Hold
+          </span>
+        }
+        @if (counts().delay > 0) {
+          <span class="tc tc-del">
+            <i class="pi pi-exclamation-triangle"></i>{{ counts().delay }} Delay
+          </span>
+        }
+        @if (counts().notStarted > 0) {
+          <span class="tc tc-ns">
+            <i class="pi pi-circle"></i>{{ counts().notStarted }} Not Started
+          </span>
+        }
+      </div>
+    </div>
+  }
+</section>

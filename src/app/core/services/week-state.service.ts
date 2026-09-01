@@ -1,10 +1,11 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { IsoDate } from '@models/common';
-import { ProjectWeekEntry } from '@models/week';
+import { ProjectWeekEntry, TaskStatus, WeekTask } from '@models/week';
 import { WeekRepository } from '@core/pouchdb/week.repository';
 import { AuditRepository } from '@core/pouchdb/audit.repository';
 import { AuthService } from '@core/services/auth.service';
+import { shortId } from '@core/pouchdb/id-utils';
 import { addWeeks, currentWeekMonday, mondayOf } from '@shared/utils/date.util';
 
 const LS_LAST_WEEK = 'wpr_last_week';
@@ -93,6 +94,89 @@ export class WeekStateService {
         detail: `Saved entry for week ${this._loadedWeek()}`,
       });
     }
+  }
+
+  /* ------------------------------------------------------------------
+   * Task-level helpers
+   *
+   * Each mutation goes through `mutateTasks` so we keep the dirty
+   * bookkeeping + last-edited metadata in one place. Callers just
+   * describe *what* they want to change to the tasks array.
+   * ---------------------------------------------------------------- */
+
+  tasksFor(projectId: string): WeekTask[] {
+    return this.entryFor(projectId)?.weekTasks ?? [];
+  }
+
+  addTask(projectId: string, name = ''): WeekTask {
+    const task: WeekTask = {
+      id: 'wt_' + shortId(),
+      name,
+      status: 'not-started',
+      assignedTo: [],
+    };
+    this.mutateTasks(projectId, (tasks) => [...tasks, task]);
+    return task;
+  }
+
+  removeTask(projectId: string, taskId: string): void {
+    this.mutateTasks(projectId, (tasks) => tasks.filter((t) => t.id !== taskId));
+  }
+
+  updateTask(projectId: string, taskId: string, patch: Partial<WeekTask>): void {
+    this.mutateTasks(projectId, (tasks) =>
+      tasks.map((t) => (t.id === taskId ? this.applyTaskPatch(t, patch) : t)),
+    );
+  }
+
+  setTaskStatus(projectId: string, taskId: string, status: TaskStatus): void {
+    const now = new Date().toISOString();
+    const patch: Partial<WeekTask> = { status };
+    if (status === 'completed') {
+      patch._completedBy = this.auth.currentUser()?.name ?? 'Unknown';
+      patch._completedAt = now;
+    } else {
+      // Un-completing clears the metadata to keep the doc honest.
+      patch._completedBy = undefined;
+      patch._completedAt = undefined;
+    }
+    this.updateTask(projectId, taskId, patch);
+  }
+
+  toggleAssignee(projectId: string, taskId: string, userId: string): void {
+    this.mutateTasks(projectId, (tasks) =>
+      tasks.map((t) => {
+        if (t.id !== taskId) return t;
+        const set = new Set(t.assignedTo);
+        if (set.has(userId)) set.delete(userId);
+        else set.add(userId);
+        return { ...t, assignedTo: Array.from(set) };
+      }),
+    );
+  }
+
+  setAssignees(projectId: string, taskId: string, userIds: string[]): void {
+    this.updateTask(projectId, taskId, { assignedTo: [...userIds] });
+  }
+
+  private mutateTasks(
+    projectId: string,
+    mutator: (tasks: WeekTask[]) => WeekTask[],
+  ): void {
+    const current = this._entries();
+    const prev = current[projectId] ?? {};
+    const nextTasks = mutator(prev.weekTasks ?? []);
+    this.patchEntry(projectId, { weekTasks: nextTasks });
+  }
+
+  private applyTaskPatch(task: WeekTask, patch: Partial<WeekTask>): WeekTask {
+    // Explicit undefined in a patch clears the field — spread would keep it.
+    const next = { ...task } as unknown as Record<string, unknown>;
+    for (const [k, v] of Object.entries(patch)) {
+      if (v === undefined) delete next[k];
+      else next[k] = v;
+    }
+    return next as unknown as WeekTask;
   }
 
   discardProject(projectId: string): void {
