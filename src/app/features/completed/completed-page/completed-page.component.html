@@ -1,0 +1,150 @@
+<p-card>
+  <ng-template pTemplate="header">
+    <div class="card-hdr">
+      <div>
+        <div class="title">✓ Completed Projects</div>
+        <div class="sub">All finished, handed over, and SAVT projects</div>
+      </div>
+      <div class="filters">
+        <p-select
+          [options]="clientOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="completed.client()"
+          (ngModelChange)="completed.client.set($event)"
+          class="filter-sel"
+          appendTo="body"
+        />
+        <p-tag
+          [value]="completed.total() + ' completed'"
+          severity="success"
+          [rounded]="true"
+        />
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- KPI strip -->
+  @if (completed.total() > 0) {
+    <div class="kpi-strip">
+      <div class="kpi kpi-total">
+        <div class="kpi-num">{{ completed.total() }}</div>
+        <div class="kpi-lbl">Total Completed</div>
+      </div>
+      @for (b of completed.statusBreakdown(); track b.status) {
+        <div class="kpi kpi-b">
+          <div class="kpi-num">{{ b.count }}</div>
+          <div class="kpi-lbl">{{ b.status }}</div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (completed.total() === 0) {
+    <div class="empty">
+      <i class="pi pi-check-circle text-emerald-500 text-5xl block mb-3"></i>
+      <div class="text-lg font-bold text-slate-700">No completed projects yet</div>
+      <div class="text-sm text-slate-500 mt-1">
+        Projects marked as Completed, Site Handed Over, or SAVT Running will appear here.
+      </div>
+    </div>
+  } @else {
+    <div class="list">
+      @for (r of completed.rows(); track r.project._id) {
+        <article class="comp-card">
+          <div class="check-icon">✓</div>
+          <div class="body">
+            <!-- Header row -->
+            <div class="head-row">
+              <span class="client-tag">{{ r.project.client }}</span>
+              <span class="name">{{ r.displayName }}</span>
+              <app-status-chip [status]="r.status" />
+              @if (r.onTimeStatus; as ot) {
+                <p-tag
+                  [value]="ot.label"
+                  [severity]="ot.onTime ? 'success' : 'danger'"
+                  [rounded]="true"
+                />
+              }
+              <p-button
+                icon="pi pi-external-link"
+                label="Open"
+                size="small"
+                severity="secondary"
+                [text]="true"
+                class="ml-auto"
+                (onClick)="openProject(r.project._id)"
+              />
+            </div>
+
+            <!-- Meta -->
+            <div class="meta">
+              <div class="meta-cell">
+                <span class="meta-lbl">✅ Completed by</span>
+                <strong>{{ r.completedBy }}</strong>
+              </div>
+              @if (r.completedAt) {
+                <div class="meta-cell">
+                  <span class="meta-lbl">📅 Date</span>
+                  <strong>{{ r.completedAt }}</strong>
+                </div>
+              }
+              @if (r.targetDate) {
+                <div class="meta-cell">
+                  <span class="meta-lbl">🎯 Target</span>
+                  <strong>{{ r.targetDate }}</strong>
+                </div>
+              }
+            </div>
+
+            <!-- Team -->
+            <div class="team">
+              <span>
+                👥 <span class="team-lbl">TL:</span>
+                <strong>{{ r.tls.join(', ') || '—' }}</strong>
+              </span>
+              <span>
+                👷 <span class="team-lbl">Engineers:</span>
+                <strong>{{ r.engineers.join(', ') || '—' }}</strong>
+              </span>
+            </div>
+
+            @if (r.weeklyTarget) {
+              <div class="goal">🎯 Goal: <em>{{ r.weeklyTarget }}</em></div>
+            }
+            @if (r.description) {
+              <div class="desc">📝 {{ r.description }}</div>
+            }
+
+            <!-- Task summary -->
+            @if (r.taskCounts.total > 0) {
+              <div class="tasks">
+                <div class="tasks-hdr">
+                  <span class="tasks-title">Tasks</span>
+                  <span class="tc tc-done">✓ {{ r.taskCounts.done }}/{{ r.taskCounts.total }} done</span>
+                  @if (r.taskCounts.delayed > 0) {
+                    <span class="tc tc-del">⚠ {{ r.taskCounts.delayed }} delayed</span>
+                  }
+                  @if (r.taskCounts.incomplete > 0) {
+                    <span class="tc tc-inc">⚠ {{ r.taskCounts.incomplete }} incomplete</span>
+                  }
+                </div>
+                <div class="tasks-list">
+                  @for (t of r.tasks; track t.id; let i = $index) {
+                    <div class="task" [class.t-done]="t.status === 'completed'" [class.t-del]="t.status === 'delay'">
+                      <span class="t-num">{{ i + 1 }}</span>
+                      <span class="t-name">{{ t.name || 'Unnamed' }}</span>
+                      <span class="t-status">{{ t.status }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="no-tasks">No weekly tasks recorded</div>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</p-card>

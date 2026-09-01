@@ -1,0 +1,195 @@
+<p-card>
+  <ng-template pTemplate="header">
+    <div class="card-hdr">
+      <div>
+        <div class="title">🔔 Alerts &amp; Action Items</div>
+        <div class="sub">Projects and tasks that need immediate attention</div>
+      </div>
+      <div class="filters">
+        <p-select
+          [options]="clientOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="alerts.client()"
+          (ngModelChange)="alerts.client.set($event); alerts.tl.set('all')"
+          class="filter-sel"
+          appendTo="body"
+        />
+        <p-select
+          [options]="tlOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="alerts.tl()"
+          (ngModelChange)="alerts.tl.set($event)"
+          [filter]="true"
+          filterBy="label"
+          class="filter-sel"
+          appendTo="body"
+        />
+        <p-tag
+          [value]="alerts.total() + ' active alerts'"
+          [severity]="alerts.total() > 0 ? 'danger' : 'success'"
+          [rounded]="true"
+        />
+      </div>
+    </div>
+  </ng-template>
+
+  @if (alerts.total() === 0) {
+    <div class="all-clear">
+      <i class="pi pi-check-circle text-emerald-500 text-5xl block mb-3"></i>
+      <div class="text-lg font-bold text-emerald-700">All clear!</div>
+      <div class="text-sm text-slate-500 mt-1">No alerts or action items right now.</div>
+    </div>
+  } @else {
+    <!-- Overdue projects -->
+    @if (alerts.overdue().length > 0) {
+      <h3 class="sec-title sec-high">
+        🔴 Overdue Projects
+        <span class="sec-count">{{ alerts.overdue().length }}</span>
+      </h3>
+      <div class="alerts-list">
+        @for (a of alerts.overdue(); track a.project._id) {
+          <article class="alert sev-high">
+            <div class="alert-icon">🔴</div>
+            <div class="alert-body">
+              <div class="alert-title">{{ a.displayName }}</div>
+              <div class="alert-meta">
+                <span>📆 {{ a.project.client }}</span>
+                <span>👥 {{ a.project.tls.join(', ') || a.project.engineers.slice(0, 2).join(', ') || 'Unassigned' }}</span>
+                <app-status-chip [status]="a.project.status" />
+              </div>
+              <div class="alert-desc">
+                Target was <b>{{ a.targetDate }}</b> — now
+                <b>{{ a.daysOverdue }} day{{ a.daysOverdue !== 1 ? 's' : '' }}</b>
+                past due.
+              </div>
+            </div>
+            <div class="alert-actions">
+              <p-tag [value]="a.daysOverdue + 'd Overdue'" severity="danger" [rounded]="true" />
+              <p-button
+                icon="pi pi-external-link"
+                label="Open"
+                size="small"
+                severity="primary"
+                (onClick)="openProject(a.project._id)"
+              />
+            </div>
+          </article>
+        }
+      </div>
+    }
+
+    <!-- Task delays -->
+    @if (alerts.taskDelays().length > 0) {
+      <h3 class="sec-title sec-high">
+        ⚠ Tasks Marked as Delay
+        <span class="sec-count">{{ alerts.taskDelays().length }}</span>
+      </h3>
+      <div class="alerts-list">
+        @for (a of alerts.taskDelays(); track a.project._id + a.taskId) {
+          <article class="alert sev-high">
+            <div class="alert-icon">⚠</div>
+            <div class="alert-body">
+              <div class="alert-title">{{ a.displayName }}</div>
+              <div class="alert-meta">
+                <span>📆 {{ a.project.client }}</span>
+                <span>👥 {{ a.project.tls.join(', ') || a.project.engineers.slice(0, 2).join(', ') || 'Unassigned' }}</span>
+                <app-status-chip [status]="a.project.status" />
+              </div>
+              <div class="alert-desc">
+                Task: <b>{{ a.taskName }}</b>
+                @if (a.assigneeNames.length) {
+                  · Assigned: <b>{{ a.assigneeNames.join(', ') }}</b>
+                }
+              </div>
+            </div>
+            <div class="alert-actions">
+              @if (a.daysOverdue) {
+                <p-tag [value]="a.daysOverdue + 'd overdue'" severity="danger" [rounded]="true" />
+              } @else {
+                <p-tag value="Delayed" severity="danger" [rounded]="true" />
+              }
+              <p-button
+                icon="pi pi-external-link"
+                label="Open"
+                size="small"
+                severity="primary"
+                (onClick)="openProject(a.project._id)"
+              />
+            </div>
+          </article>
+        }
+      </div>
+    }
+
+    <!-- On hold -->
+    @if (alerts.onHold().length > 0) {
+      <h3 class="sec-title sec-med">
+        ▪ Projects On Hold
+        <span class="sec-count">{{ alerts.onHold().length }}</span>
+      </h3>
+      <div class="alerts-list">
+        @for (a of alerts.onHold(); track a.project._id) {
+          <article class="alert sev-med">
+            <div class="alert-icon">▪</div>
+            <div class="alert-body">
+              <div class="alert-title">{{ a.displayName }}</div>
+              <div class="alert-meta">
+                <span>📆 {{ a.project.client }}</span>
+                <span>👥 {{ a.project.tls.join(', ') || a.project.engineers.slice(0, 2).join(', ') || 'Unassigned' }}</span>
+              </div>
+              <div class="alert-desc reason">{{ a.reason }}</div>
+            </div>
+            <div class="alert-actions">
+              <p-tag value="On Hold" severity="warn" [rounded]="true" />
+              <p-button
+                icon="pi pi-external-link"
+                label="Open"
+                size="small"
+                severity="primary"
+                (onClick)="openProject(a.project._id)"
+              />
+            </div>
+          </article>
+        }
+      </div>
+    }
+
+    <!-- No updates -->
+    @if (alerts.noUpdate().length > 0) {
+      <h3 class="sec-title sec-info">
+        ○ Active Projects with No Updates
+        <span class="sec-count">{{ alerts.noUpdate().length }}</span>
+      </h3>
+      <div class="alerts-list">
+        @for (a of alerts.noUpdate(); track a.project._id) {
+          <article class="alert sev-info">
+            <div class="alert-icon">○</div>
+            <div class="alert-body">
+              <div class="alert-title">{{ a.displayName }}</div>
+              <div class="alert-meta">
+                <span>📆 {{ a.project.client }}</span>
+                <span>👥 {{ a.project.tls.join(', ') || a.project.engineers.slice(0, 2).join(', ') || 'Unassigned' }}</span>
+                <app-status-chip [status]="a.project.status" />
+              </div>
+              <div class="alert-desc">
+                This project is active but no weekly tasks or form data have been filled this week.
+              </div>
+            </div>
+            <div class="alert-actions">
+              <p-tag value="No Updates" severity="secondary" [rounded]="true" />
+              <p-button
+                icon="pi pi-external-link"
+                label="Open"
+                size="small"
+                severity="primary"
+                (onClick)="openProject(a.project._id)"
+              />
+            </div>
+          </article>
+        }
+      </div>
+    }
+  }
+</p-card>
