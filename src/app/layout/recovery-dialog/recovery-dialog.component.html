@@ -1,0 +1,74 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  header="📅 Week History"
+  [modal]="true"
+  [style]="{ width: '600px' }"
+  [breakpoints]="{ '640px': '95vw' }"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+>
+  <p class="text-sm text-slate-600 mb-4">
+    Every stored week doc. Click any row to jump to that week — the app will
+    reload its data instantly.
+  </p>
+
+  @if (loading()) {
+    <div class="state">
+      <i class="pi pi-spinner pi-spin mr-2"></i>
+      Loading history…
+    </div>
+  } @else if (summaries().length === 0) {
+    <div class="state">
+      <i class="pi pi-inbox text-3xl text-slate-300 block mb-2"></i>
+      No week data yet. History will appear here as you fill weekly reports.
+    </div>
+  } @else {
+    <div class="list">
+      @for (w of summaries(); track w.weekStart) {
+        <div
+          class="row"
+          [class.row-current]="w.isCurrent"
+          [class.row-viewing]="w.isViewing && !w.isCurrent"
+        >
+          <div class="body">
+            <div class="label">{{ w.label }}</div>
+            <div class="sub">
+              {{ w.filledCount }} of {{ w.projectCount }} filled
+              @if (w.taskCount > 0) {
+                · {{ w.taskCount }} task{{ w.taskCount === 1 ? '' : 's' }}
+              }
+            </div>
+          </div>
+
+          <div class="tags">
+            @if (w.isCurrent) {
+              <p-tag value="Current" severity="success" [rounded]="true" />
+            }
+            @if (w.isViewing && !w.isCurrent) {
+              <p-tag value="Viewing" severity="info" [rounded]="true" />
+            }
+          </div>
+
+          @if (w.isViewing) {
+            <p-button label="Open" severity="secondary" size="small" [outlined]="true" [disabled]="true" />
+          } @else {
+            <p-button
+              label="Load"
+              icon="pi pi-arrow-right"
+              iconPos="right"
+              severity="primary"
+              size="small"
+              (onClick)="load(w.weekStart)"
+            />
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <ng-template pTemplate="footer">
+    <p-button label="Close" [text]="true" severity="secondary" (onClick)="close()" />
+  </ng-template>
+</p-dialog>

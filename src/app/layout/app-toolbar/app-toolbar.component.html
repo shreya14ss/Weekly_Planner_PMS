@@ -1,0 +1,88 @@
+<div class="toolbar">
+  <!-- Left group: create / import / export -->
+  <div class="grp">
+    @if (auth.isPM() || auth.isTL()) {
+      <p-button
+        icon="pi pi-plus"
+        label="Add Project"
+        severity="primary"
+        size="small"
+        (onClick)="actions.openAddProject()"
+      />
+    }
+    @if (auth.isPM()) {
+      <p-button
+        icon="pi pi-upload"
+        label="Import Excel"
+        severity="secondary"
+        size="small"
+        [outlined]="true"
+        pTooltip="Import projects, users, or the full Firebase export"
+        tooltipPosition="bottom"
+        (onClick)="openImport()"
+      />
+    }
+    <p-button
+      icon="pi pi-list"
+      label="Export List"
+      severity="secondary"
+      size="small"
+      [outlined]="true"
+      pTooltip="Download the project directory as Excel"
+      tooltipPosition="bottom"
+      [disabled]="!hasProjects()"
+      (onClick)="exportList()"
+    />
+    @if (auth.isPM()) {
+      <p-button
+        icon="pi pi-save"
+        label="Backup (JSON)"
+        severity="success"
+        size="small"
+        pTooltip="Download a full data snapshot as JSON — re-importable via Import Excel"
+        tooltipPosition="bottom"
+        (onClick)="exportBackup()"
+      />
+    }
+  </div>
+
+  <!-- Right group: report / clear / recover -->
+  <div class="grp">
+    <p-button
+      icon="pi pi-download"
+      label="Excel Report"
+      severity="success"
+      size="small"
+      [outlined]="true"
+      pTooltip="Download the current week as a full spreadsheet"
+      tooltipPosition="bottom"
+      [disabled]="!hasProjects()"
+      (onClick)="exportReport()"
+    />
+    @if (auth.isPM()) {
+      <p-button
+        icon="pi pi-trash"
+        label="Clear Data"
+        severity="danger"
+        size="small"
+        [outlined]="true"
+        [loading]="clearing()"
+        pTooltip="Delete every project / week / audit doc. Preserves the seeded PM."
+        tooltipPosition="bottom"
+        (onClick)="clearAll($event)"
+      />
+    }
+    <p-button
+      icon="pi pi-history"
+      label="Recover Tasks"
+      severity="secondary"
+      size="small"
+      [outlined]="true"
+      pTooltip="Browse every stored week and jump back to it"
+      tooltipPosition="bottom"
+      (onClick)="actions.openRecovery()"
+    />
+  </div>
+</div>
+
+<p-confirmDialog />

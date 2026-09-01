@@ -8,11 +8,15 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 
 import { AuthService } from '@core/services/auth.service';
+import { AppActionsService } from '@core/services/app-actions.service';
 import { DatabaseService } from '@core/pouchdb/database.service';
 import { UserRepository } from '@core/pouchdb/user.repository';
 import { UserDoc } from '@models/user';
 import { WeekNavComponent } from '@shared/components/week-nav/week-nav.component';
 import { UserFormModalComponent } from '@features/users/user-form-modal/user-form-modal.component';
+import { AddProjectModalComponent } from '@features/projects/add-project-modal/add-project-modal.component';
+import { AppToolbarComponent } from '@layout/app-toolbar/app-toolbar.component';
+import { RecoveryDialogComponent } from '@layout/recovery-dialog/recovery-dialog.component';
 
 @Component({
   selector: 'app-shell',
@@ -28,6 +32,9 @@ import { UserFormModalComponent } from '@features/users/user-form-modal/user-for
     TooltipModule,
     WeekNavComponent,
     UserFormModalComponent,
+    AddProjectModalComponent,
+    AppToolbarComponent,
+    RecoveryDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app-shell.component.html',
@@ -37,6 +44,7 @@ export class AppShellComponent {
   private readonly auth = inject(AuthService);
   private readonly db = inject(DatabaseService);
   private readonly users = inject(UserRepository);
+  protected readonly actions = inject(AppActionsService);
 
   readonly user = this.auth.currentUser;
   readonly isPM = this.auth.isPM;

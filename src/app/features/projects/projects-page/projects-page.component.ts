@@ -11,21 +11,18 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ProjectDoc } from '@models/project';
 import { AuthService } from '@core/services/auth.service';
 import { WeekStateService } from '@core/services/week-state.service';
-import { ExportService } from '@core/services/export.service';
+import { AppActionsService } from '@core/services/app-actions.service';
 import { ProjectFilterService } from '@features/projects/project-filter.service';
-import { AddProjectModalComponent } from '@features/projects/add-project-modal/add-project-modal.component';
 import { ProjectCardComponent } from '@features/projects/project-card/project-card.component';
 import { PendingTasksBarComponent } from '@features/projects/pending-tasks-bar/pending-tasks-bar.component';
 
 /**
  * Projects page:
- *  - Toolbar (search filter, add project)
+ *  - Search + engineer filter
  *  - Client-grouped list of expandable project cards
- *  - Add/Edit modal wired to the ProjectRepository
  *
- * State lives in the injected services:
- *   ProjectFilterService: visible list + grouping
- *   WeekStateService: per-project entries for the current week
+ * The Add/Edit modal lives at the AppShell layer now, driven by
+ * AppActionsService. This page just triggers openAdd/openEdit.
  */
 @Component({
   selector: 'app-projects-page',
@@ -38,7 +35,6 @@ import { PendingTasksBarComponent } from '@features/projects/pending-tasks-bar/p
     CardModule,
     TagModule,
     TooltipModule,
-    AddProjectModalComponent,
     ProjectCardComponent,
     PendingTasksBarComponent,
   ],
@@ -50,18 +46,11 @@ export class ProjectsPageComponent {
   protected readonly auth = inject(AuthService);
   protected readonly filter = inject(ProjectFilterService);
   protected readonly state = inject(WeekStateService);
-  private readonly export_ = inject(ExportService);
+  private readonly actions = inject(AppActionsService);
 
   protected readonly search = signal('');
-  protected readonly modalOpen = signal(false);
-  protected readonly editing = signal<ProjectDoc | null>(null);
   protected readonly collapsedClients = signal<ReadonlySet<string>>(new Set());
 
-  /**
-   * Groups after the engineer filter + free-text search are applied.
-   * The engineer filter is upstream (ProjectFilterService); search
-   * further narrows by project or client name.
-   */
   protected readonly groups = computed(() => {
     const q = this.search().trim().toLowerCase();
     if (!q) return this.filter.grouped();
@@ -91,27 +80,8 @@ export class ProjectsPageComponent {
 
   protected readonly dirtyCount = computed(() => this.state.dirty().size);
 
-  openAdd(): void {
-    this.editing.set(null);
-    this.modalOpen.set(true);
-  }
-
-  /** Scope respects the active filters + search, so exports match the view. */
-  private currentScope(): ProjectDoc[] {
-    return this.groups().flatMap((g) => g.projects);
-  }
-
-  exportWeeklyReport(): void {
-    this.export_.exportWeeklyReport(this.currentScope());
-  }
-
-  exportProjectList(): void {
-    this.export_.exportProjectList(this.currentScope());
-  }
-
   openEdit(p: ProjectDoc): void {
-    this.editing.set(p);
-    this.modalOpen.set(true);
+    this.actions.openEditProject(p);
   }
 
   toggleClient(client: string): void {

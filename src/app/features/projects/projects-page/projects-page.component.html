@@ -43,37 +43,6 @@
     <span class="text-slate-500 text-sm whitespace-nowrap">
       {{ totalVisible() }} project{{ totalVisible() === 1 ? '' : 's' }}
     </span>
-    <p-button
-      icon="pi pi-download"
-      label="Excel Report"
-      severity="success"
-      size="small"
-      [outlined]="true"
-      pTooltip="Download the current week as a full spreadsheet"
-      tooltipPosition="bottom"
-      [disabled]="totalVisible() === 0"
-      (onClick)="exportWeeklyReport()"
-    />
-    <p-button
-      icon="pi pi-list"
-      label="Project List"
-      severity="secondary"
-      size="small"
-      [outlined]="true"
-      pTooltip="Download just the project directory"
-      tooltipPosition="bottom"
-      [disabled]="totalVisible() === 0"
-      (onClick)="exportProjectList()"
-    />
-    @if (auth.isPM() || auth.isTL()) {
-      <p-button
-        label="Add Project"
-        icon="pi pi-plus"
-        severity="primary"
-        size="small"
-        (onClick)="openAdd()"
-      />
-    }
   </div>
 </section>
 
@@ -95,7 +64,7 @@
           Nothing matches your search — try clearing the filters.
         } @else {
           @if (auth.isPM() || auth.isTL()) {
-            Click <b>Add Project</b> to create the first one.
+            Click <b>Add Project</b> in the toolbar above to create the first one.
           } @else {
             You aren't assigned to any projects yet.
           }
@@ -135,9 +104,3 @@
     }
   </div>
 }
-
-<!-- Add / Edit modal -->
-<app-add-project-modal
-  [(visible)]="modalOpen"
-  [editing]="editing()"
-/>

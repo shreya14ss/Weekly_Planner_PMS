@@ -131,17 +131,11 @@
           <i class="pi pi-history"></i> History
         </a>
       }
-      @if (isPM()) {
-        <a
-          routerLink="/app/import"
-          routerLinkActive="text-white border-rbh-accent"
-          class="px-4 py-2.5 text-sm font-semibold text-white/60 hover:text-white border-b-[3px] border-transparent transition flex items-center gap-2"
-        >
-          <i class="pi pi-cloud-upload"></i> Import
-        </a>
-      }
     </nav>
   </header>
+
+  <!-- Persistent toolbar (visible on every tab) -->
+  <app-toolbar />
 
   <!-- Content -->
   <main class="flex-1 max-w-[1380px] mx-auto w-full p-4 pb-20">
@@ -154,4 +148,13 @@
     [editing]="pinEditing()"
     mode="change-pin"
   />
+
+  <!-- Global Add / Edit Project modal — triggered from AppActionsService -->
+  <app-add-project-modal
+    [(visible)]="actions.addProjectOpen"
+    [editing]="actions.editingProject()"
+  />
+
+  <!-- Global Recovery / week-history dialog -->
+  <app-recovery-dialog [(visible)]="actions.recoveryOpen" />
 </div>

@@ -1,0 +1,23 @@
+:host {
+  display: block;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.toolbar {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 10px 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.grp {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
