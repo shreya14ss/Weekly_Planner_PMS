@@ -1,3 +1,21 @@
 :host {
   display: block;
 }
+
+/* Header gradient + nav bar pull colours from the theme CSS variables
+ * defined in styles.scss. Falls back to RBH navy if the attribute
+ * hasn't been applied yet. */
+.app-header {
+  background: linear-gradient(150deg, var(--shell-dark) 0%, var(--shell-mid) 60%, var(--shell-mid) 100%);
+  border-bottom-color: var(--shell-accent);
+  transition: background 0.35s ease;
+}
+
+.app-nav {
+  background: var(--shell-mid);
+  transition: background 0.35s ease;
+}
+
+.tab-active-accent {
+  border-bottom-color: var(--shell-accent) !important;
+}

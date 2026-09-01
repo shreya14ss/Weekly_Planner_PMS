@@ -13,6 +13,7 @@ import { DatabaseService } from '@core/pouchdb/database.service';
 import { UserRepository } from '@core/pouchdb/user.repository';
 import { UserDoc } from '@models/user';
 import { WeekNavComponent } from '@shared/components/week-nav/week-nav.component';
+import { ThemeSwitcherComponent } from '@shared/components/theme-switcher/theme-switcher.component';
 import { UserFormModalComponent } from '@features/users/user-form-modal/user-form-modal.component';
 import { AddProjectModalComponent } from '@features/projects/add-project-modal/add-project-modal.component';
 import { AppToolbarComponent } from '@layout/app-toolbar/app-toolbar.component';
@@ -31,6 +32,7 @@ import { RecoveryDialogComponent } from '@layout/recovery-dialog/recovery-dialog
     TagModule,
     TooltipModule,
     WeekNavComponent,
+    ThemeSwitcherComponent,
     UserFormModalComponent,
     AddProjectModalComponent,
     AppToolbarComponent,
