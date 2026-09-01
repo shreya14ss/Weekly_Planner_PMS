@@ -1,0 +1,105 @@
+<!-- Sticky filter bar -->
+<section class="filter-bar">
+  <div class="filter-group">
+    <label class="filter-label" for="dfClient">Client</label>
+    <p-select
+      inputId="dfClient"
+      [options]="clientOptions()"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="filter.client()"
+      (ngModelChange)="filter.client.set($event); filter.tl.set('all')"
+      class="filter-sel"
+      appendTo="body"
+    />
+  </div>
+
+  <div class="filter-group">
+    <label class="filter-label" for="dfTl">TL / Engineer</label>
+    <p-select
+      inputId="dfTl"
+      [options]="tlOptions()"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="filter.tl()"
+      (ngModelChange)="filter.tl.set($event)"
+      [filter]="true"
+      filterBy="label"
+      class="filter-sel"
+      appendTo="body"
+    />
+  </div>
+
+  <div class="filter-group">
+    <label class="filter-label" for="dfStatus">Status</label>
+    <p-select
+      inputId="dfStatus"
+      [options]="statusOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="filter.status()"
+      (ngModelChange)="filter.status.set($event)"
+      class="filter-sel"
+      appendTo="body"
+    />
+  </div>
+
+  @if (hasAnyFilter()) {
+    <p-button
+      label="Reset"
+      icon="pi pi-refresh"
+      severity="secondary"
+      [text]="true"
+      size="small"
+      (onClick)="reset()"
+    />
+  }
+
+  <div class="filter-count">
+    <i class="pi pi-eye text-slate-400"></i>
+    {{ kpis().total }} project{{ kpis().total === 1 ? '' : 's' }} in scope
+  </div>
+</section>
+
+<!-- KPI row -->
+<section class="mt-4">
+  <app-kpi-cards [kpis]="kpis()" />
+</section>
+
+<!-- Chart row: donut + client bars -->
+<div class="chart-row mt-4">
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="card-title">Status Distribution</div>
+    </ng-template>
+    <app-status-donut [segments]="statusSegments()" />
+  </p-card>
+
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="card-title">Projects by Client</div>
+    </ng-template>
+    <app-client-bars [bars]="clientBars()" />
+  </p-card>
+</div>
+
+<!-- Attention row: delayed + on hold -->
+<div class="chart-row mt-4">
+  <p-card>
+    <app-attention-list
+      title="Delayed Projects"
+      titleColor="#DC2626"
+      [items]="delayedList()"
+      (open)="openProject($event)"
+    />
+  </p-card>
+
+  <p-card>
+    <app-attention-list
+      title="On Hold Projects"
+      titleColor="#D97706"
+      [items]="onHoldList()"
+      (open)="openProject($event)"
+    />
+  </p-card>
+</div>
