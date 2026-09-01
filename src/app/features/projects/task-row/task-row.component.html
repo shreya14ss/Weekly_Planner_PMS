@@ -59,4 +59,66 @@
       (assigneesChange)="onAssigneesChange($event)"
     />
   </div>
+
+  <!-- Due date + quick set -->
+  <div class="row-line due-line">
+    <span class="line-label">Due</span>
+    <p-datepicker
+      [ngModel]="dueDate()"
+      (ngModelChange)="onDueDateChange($event)"
+      [readonlyInput]="!canEdit()"
+      [showIcon]="true"
+      [showClear]="true"
+      dateFormat="dd M yy"
+      appendTo="body"
+      placeholder="Set a due date"
+      class="due-picker"
+    />
+    @if (canEdit()) {
+      <div class="quick-grp">
+        <button
+          type="button"
+          class="quick-btn"
+          pTooltip="Saturday of this week"
+          tooltipPosition="top"
+          (click)="onQuickDue(0)"
+        >
+          This wk
+        </button>
+        <button
+          type="button"
+          class="quick-btn"
+          pTooltip="Saturday of next week"
+          tooltipPosition="top"
+          (click)="onQuickDue(1)"
+        >
+          +1 wk
+        </button>
+        <button
+          type="button"
+          class="quick-btn"
+          pTooltip="Saturday of the week after next"
+          tooltipPosition="top"
+          (click)="onQuickDue(2)"
+        >
+          +2 wk
+        </button>
+      </div>
+    }
+    @if (dueBadge(); as b) {
+      <span class="due-badge {{ b.cls }}">
+        <i class="pi pi-clock"></i>
+        {{ b.label }}
+      </span>
+    }
+  </div>
+
+  <!-- Delay tracking — only for delayed tasks with a known origin week -->
+  @if (task().status === 'delay' && delayDays()) {
+    <div class="delay-banner">
+      <i class="pi pi-exclamation-triangle text-rose-600"></i>
+      <span class="delay-count">+{{ delayDays() }}d delayed</span>
+      <span class="delay-origin">Since: {{ delayOriginLabel() }}</span>
+    </div>
+  }
 </div>

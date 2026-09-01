@@ -212,7 +212,19 @@ export class WeekStateService {
       // We drop the dirty tracking but the caller can inspect `hasAnyDirty()`
       // beforehand if they want to prompt.
       const doc = await this.weekRepo.load(monday);
-      this._entries.set(doc?.entries ?? {});
+      let entries = doc?.entries ?? {};
+
+      // Auto-mark overdue: tasks whose due date has passed and that are
+      // still in an "in-flight" status flip to delay. We do it here so
+      // the correction is stored, not just visually derived — otherwise
+      // Dashboard/Alerts would need the same rule everywhere.
+      const overdue = this.applyOverdueRules(entries, monday);
+      if (overdue.changed && Object.keys(overdue.entries).length > 0) {
+        await this.weekRepo.save(monday, overdue.entries);
+        entries = overdue.entries;
+      }
+
+      this._entries.set(entries);
       this._dirty.set(new Set());
       this.snapshot = {};
       this._loadedWeek.set(monday);
@@ -220,6 +232,46 @@ export class WeekStateService {
     } finally {
       this._loading.set(false);
     }
+  }
+
+  /**
+   * Pure function — walks the entries and flips overdue tasks to delay.
+   * Doesn't touch `this` state directly; callers decide whether to persist.
+   */
+  private applyOverdueRules(
+    entries: Record<string, ProjectWeekEntry>,
+    weekStart: IsoDate,
+  ): { entries: Record<string, ProjectWeekEntry>; changed: boolean } {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let changed = false;
+    const next: Record<string, ProjectWeekEntry> = { ...entries };
+
+    for (const [pid, entry] of Object.entries(entries)) {
+      const tasks = entry.weekTasks;
+      if (!tasks?.length) continue;
+
+      let touched = false;
+      const updated = tasks.map((t) => {
+        if (!t.taskDueDate) return t;
+        if (t.status === 'completed' || t.status === 'hold' || t.status === 'delay') return t;
+        const due = new Date(t.taskDueDate + 'T00:00:00');
+        if (due >= today) return t;
+        touched = true;
+        return {
+          ...t,
+          status: 'delay' as const,
+          originalWeek: t.originalWeek || t.carriedWeek || weekStart,
+        };
+      });
+
+      if (touched) {
+        next[pid] = { ...entry, weekTasks: updated };
+        changed = true;
+      }
+    }
+
+    return { entries: next, changed };
   }
 
   private markDirty(projectId: string, on: boolean): void {

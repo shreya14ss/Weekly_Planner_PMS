@@ -36,3 +36,21 @@ export const formatWeekRange = (weekStart: IsoDate): string => {
   const end = addDays(start, 5);
   return `${format(start, 'dd MMM')} – ${format(end, 'dd MMM yyyy')}`;
 };
+
+/** Saturday (day 6) of a given week — the natural end-of-work-week deadline. */
+export const saturdayOf = (weekStart: IsoDate): IsoDate =>
+  toIsoDate(addDays(parseIso(weekStart), 5));
+
+export const todayIso = (): IsoDate => toIsoDate(new Date());
+
+/**
+ * Non-negative day difference from an ISO date to today (0 if in the future).
+ * Handy for "X days overdue" badges.
+ */
+export const daysOverdue = (dueIso: IsoDate): number => {
+  const diff = daysBetween(dueIso, todayIso());
+  return diff > 0 ? diff : 0;
+};
+
+export const isPastDue = (dueIso: IsoDate | undefined): boolean =>
+  !!dueIso && daysBetween(dueIso, todayIso()) > 0;
