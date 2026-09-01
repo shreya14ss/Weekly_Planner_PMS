@@ -2,15 +2,73 @@
   display: block;
 }
 
-/* Center the PIN input digits and give them breathing room */
-:host ::ng-deep .p-inputotp {
-  gap: 0.5rem;
+.login-shell {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(232, 114, 26, 0.14) 0%, transparent 40%),
+    radial-gradient(circle at 85% 90%, rgba(26, 114, 204, 0.18) 0%, transparent 45%),
+    linear-gradient(135deg, #0a1628 0%, #0d2040 55%, #081828 100%);
+}
 
-  .p-inputotp-input {
-    width: 3rem;
-    height: 3rem;
-    font-size: 1.25rem;
-    font-weight: 700;
-    text-align: center;
+.login-card {
+  width: 100%;
+  max-width: 430px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 2.25rem 2.25rem 2rem;
+  box-shadow:
+    0 30px 80px -20px rgba(2, 8, 23, 0.55),
+    0 8px 24px -8px rgba(2, 8, 23, 0.35);
+}
+
+.hint {
+  display: flex;
+  gap: 0.625rem;
+  align-items: flex-start;
+  margin-top: 1rem;
+  padding: 0.75rem 0.875rem;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #0c4a6e;
+}
+
+.pin-badge {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: #ffffff;
+  border: 1px solid #bae6fd;
+  color: #0369a1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: 0.5px;
+}
+
+/*
+ * The p-select's internal label is the visible value area — override its
+ * default vertical padding so it visually matches the OTP inputs.
+ */
+:host ::ng-deep .p-select {
+  width: 100%;
+
+  .p-select-label {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9rem;
   }
+}
+
+/* Full-width primary button with generous vertical padding */
+:host ::ng-deep .p-button {
+  width: 100%;
+  justify-content: center;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }

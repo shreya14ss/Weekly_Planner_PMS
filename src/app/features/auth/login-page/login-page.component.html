@@ -1,30 +1,30 @@
-<div
-  class="fixed inset-0 flex items-center justify-center p-5"
-  style="background: linear-gradient(135deg, #0a1628 0%, #0d2040 50%, #081828 100%)"
->
-  <div class="bg-white rounded-2xl p-9 w-full max-w-md shadow-2xl">
+<div class="login-shell">
+  <div class="login-card">
     <!-- Brand -->
-    <div class="flex items-center gap-3 mb-7">
+    <div class="flex items-center gap-3 mb-8">
       <div
-        class="w-11 h-11 rounded-xl bg-rbh-accent text-rbh-navy grid place-items-center font-black text-2xl"
+        class="w-12 h-12 rounded-xl bg-rbh-accent text-rbh-navy grid place-items-center font-black text-lg shadow-md"
       >
         RBH
       </div>
-      <div>
-        <div class="text-base font-extrabold text-rbh-navy">RBH Solutions</div>
-        <div class="text-[10px] text-slate-500 tracking-widest uppercase mt-0.5">
+      <div class="min-w-0">
+        <div class="text-base font-extrabold text-rbh-navy leading-tight">RBH Solutions</div>
+        <div class="text-[10.5px] text-slate-500 tracking-[0.14em] uppercase mt-1 font-semibold">
           SCADA &amp; Industrial Automation
         </div>
       </div>
     </div>
 
-    <h1 class="text-2xl font-extrabold text-rbh-navy mb-1.5">Sign In</h1>
-    <p class="text-sm text-slate-500 mb-6">Select your name and enter your PIN to continue</p>
+    <!-- Heading -->
+    <h1 class="text-[26px] font-extrabold text-rbh-navy leading-tight">Sign In</h1>
+    <p class="text-sm text-slate-500 mt-1.5 mb-7">
+      Select your name and enter your PIN to continue.
+    </p>
 
     <!-- Name -->
     <label
       for="loginUser"
-      class="block text-[10.5px] font-bold tracking-wider uppercase text-slate-500 mb-1.5"
+      class="block text-[11px] font-bold tracking-[0.09em] uppercase text-slate-500 mb-2"
     >
       Your Name
     </label>
@@ -33,10 +33,10 @@
       [options]="userOptions()"
       optionLabel="label"
       optionValue="id"
-      placeholder="— Select your name —"
+      placeholder="Select your name…"
       [ngModel]="selectedUserId()"
       (ngModelChange)="selectedUserId.set($event)"
-      class="w-full mb-4 block"
+      class="w-full block mb-5"
       [filter]="true"
       filterBy="label"
       appendTo="body"
@@ -45,11 +45,11 @@
     <!-- PIN -->
     <label
       for="loginPin"
-      class="block text-[10.5px] font-bold tracking-wider uppercase text-slate-500 mb-1.5"
+      class="block text-[11px] font-bold tracking-[0.09em] uppercase text-slate-500 mb-2"
     >
       PIN (4 digits)
     </label>
-    <div id="loginPin" class="mb-4 flex justify-center">
+    <div id="loginPin" class="mb-6">
       <p-input-otp
         [ngModel]="pin()"
         (ngModelChange)="pin.set($event)"
@@ -60,30 +60,37 @@
     </div>
 
     <p-button
-      label="Sign In →"
+      label="Sign In"
+      icon="pi pi-arrow-right"
+      iconPos="right"
       [loading]="submitting()"
       [disabled]="!canSubmit()"
       class="w-full block"
       severity="primary"
+      size="large"
       (onClick)="submit()"
     />
 
     @if (error()) {
-      <p-message severity="error" class="w-full mt-3 block">{{ error() }}</p-message>
+      <p-message severity="error" class="w-full mt-4 block">{{ error() }}</p-message>
     }
 
-    <div
-      class="mt-3.5 bg-sky-50 border border-sky-200 rounded-md p-2.5 text-xs text-sky-900 leading-relaxed"
-    >
-      <b class="text-sky-700">First time?</b> Default PIN for PM is <b>0000</b>, others is
-      <b>1234</b>. Change your PIN after login.
+    <!-- Helper hint -->
+    <div class="hint">
+      <i class="pi pi-info-circle text-sky-600 mt-0.5"></i>
+      <div>
+        <b class="text-sky-800">First time?</b> Default PIN for
+        <b>Project Manager</b> is <span class="pin-badge">0000</span>, for everyone else it's
+        <span class="pin-badge">1234</span>. Change your PIN after signing in.
+      </div>
     </div>
 
-    <div class="text-center mt-4 pt-3.5 border-t border-slate-100">
-      <div class="text-[10px] text-slate-400 tracking-wide">
-        RBH Solutions Pvt. Ltd. · SCO 06, Urban Estate, Phase 2, Patiala
+    <!-- Footer -->
+    <div class="mt-6 pt-4 border-t border-slate-100 text-center">
+      <div class="text-[10.5px] text-slate-400 tracking-wide">
+        RBH Solutions Pvt. Ltd. &nbsp;·&nbsp; SCO 06, Urban Estate, Phase 2, Patiala
       </div>
-      <div class="text-[10px] text-slate-400 mt-0.5">
+      <div class="text-[10.5px] text-slate-400 mt-1">
         Technology-driven Automation &amp; Control Solutions
       </div>
     </div>

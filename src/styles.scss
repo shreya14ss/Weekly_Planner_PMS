@@ -30,3 +30,28 @@ body {
 * {
   box-sizing: border-box;
 }
+
+/*
+ * Global PrimeNG tweaks — these live *outside* @layer primeng so they win
+ * without !important. Keep this section small and purposeful.
+ */
+
+/* p-inputotp: the individual digit inputs default to a cramped 2.5rem — bump them so the PIN entry feels deliberate. */
+.p-inputotp {
+  gap: 0.625rem;
+  justify-content: center;
+
+  .p-inputotp-input {
+    width: 3.25rem;
+    height: 3.5rem;
+    font-size: 1.375rem;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 0.5rem;
+  }
+}
+
+/* p-select filter: keep the visible value area from getting pushed by the filter input on small widths. */
+.p-select .p-select-label {
+  padding-right: 2.5rem;
+}
