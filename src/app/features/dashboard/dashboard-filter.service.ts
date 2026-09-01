@@ -64,18 +64,24 @@ export class DashboardFilterService {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   });
 
-  /** The scope every dashboard widget should aggregate over. */
+  /**
+   * The scope every dashboard widget aggregates over.
+   *
+   * DOES include completed projects — the "Completed" KPI card would
+   * always read 0 otherwise, and the Completed status filter would
+   * return nothing. Widgets that specifically care about in-flight
+   * work (Weekly Schedule Tracker, Delayed/On-Hold attention lists)
+   * filter completed projects out themselves.
+   */
   readonly scope = computed<ProjectDoc[]>(() => {
     const user = this.auth.currentUser();
     const client = this.client();
     const tl = this.tl();
     const status = this.status();
-    const entries = this.weekState.entries();
 
     return this.projects
       .all()
       .filter((p) => isProjectVisible(user, p))
-      .filter((p) => !isDoneStatus(effectiveStatus(p, entries[p._id])))
       .filter((p) => client === 'all' || p.client === client)
       .filter((p) => {
         if (tl === 'all') return true;

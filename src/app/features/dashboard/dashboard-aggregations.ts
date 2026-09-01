@@ -170,12 +170,20 @@ export function useDashboardAggregations(scope: () => ProjectDoc[]) {
     for (const p of projects) {
       const entry = entries[p._id];
       const st = effectiveStatus(p, entry);
-      if (isDoneStatus(st)) done++;
+
+      // Completed projects are mutually exclusive with active / hold /
+      // delayed / not-filled — otherwise a project can be counted twice
+      // (e.g. "delayed task on a completed project" isn't actionable).
+      if (isDoneStatus(st)) {
+        done++;
+        continue;
+      }
+
       if (isActiveStatus(st)) active++;
       if (isOnHold(st)) hold++;
 
       const target = entry?.targetDate;
-      const pastTarget = target && new Date(target + 'T00:00:00') < today && !isDoneStatus(st);
+      const pastTarget = target && new Date(target + 'T00:00:00') < today;
       const hasDelayedTask = (entry?.weekTasks ?? []).some((t) => t.status === 'delay');
       if (pastTarget || hasDelayedTask) delayed++;
 
@@ -373,6 +381,10 @@ export function useDashboardAggregations(scope: () => ProjectDoc[]) {
     const rows: DelayedTaskRow[] = [];
 
     for (const p of projects) {
+      // Skip completed projects — a delayed task on a done project
+      // isn't actionable and would clutter the follow-up view.
+      if (isDoneStatus(effectiveStatus(p, entries[p._id]))) continue;
+
       const tasks = entries[p._id]?.weekTasks ?? [];
       for (const t of tasks) {
         if (t.status !== 'delay') continue;
