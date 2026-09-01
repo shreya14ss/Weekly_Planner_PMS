@@ -1,0 +1,162 @@
+<p-card>
+  <ng-template pTemplate="header">
+    <div class="card-hdr">
+      <div>
+        <div class="title">👥 Team Members &amp; Access</div>
+        <div class="sub">{{ users.all().length }} total users — add, edit, or reassign PINs</div>
+      </div>
+      <div class="hdr-actions">
+        <p-button
+          icon="pi pi-plus"
+          label="Add User"
+          size="small"
+          severity="primary"
+          (onClick)="openAdd()"
+        />
+        <p-button
+          icon="pi pi-download"
+          label="Export"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="exportExcel()"
+        />
+        <label class="import-btn">
+          <i class="pi pi-upload"></i>
+          Import
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            (change)="importExcel($event)"
+          />
+        </label>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Role filter -->
+  <div class="role-filter">
+    @for (opt of roleFilters; track opt.value) {
+      <button
+        type="button"
+        class="rf-btn"
+        [class]="opt.cls"
+        [class.rf-active]="roleFilter() === opt.value"
+        (click)="roleFilter.set(opt.value)"
+      >
+        {{ opt.label }}
+      </button>
+    }
+    <span class="rf-count">
+      {{ filtered().length }} shown
+      @if (roleFilter() !== 'all') {
+        · <b>{{ roleFilter().toUpperCase() }}</b>
+      }
+    </span>
+  </div>
+
+  @if (filtered().length === 0) {
+    <div class="empty">
+      <i class="pi pi-user-plus text-3xl text-slate-300 block mb-2"></i>
+      <div class="text-sm text-slate-500">
+        @if (users.all().length === 0) {
+          No users yet — click <b>Add User</b> to create the first one.
+        } @else {
+          No users match the selected role filter.
+        }
+      </div>
+    </div>
+  } @else {
+    <p-table
+      [value]="filtered()"
+      [paginator]="true"
+      [rows]="25"
+      [rowsPerPageOptions]="[25, 50, 100]"
+      stripedRows
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Name</th>
+          <th>Role</th>
+          <th>PIN</th>
+          <th>Assigned as TL</th>
+          <th>Contact</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-user>
+        <tr>
+          <td>
+            <div class="user-cell">
+              <span class="avatar" [style.background]="avatarBg(user.role)">
+                {{ initialsOf(user.name) }}
+              </span>
+              <div>
+                <div class="user-name">{{ user.name }}</div>
+                <div class="user-sub">
+                  {{ projectCounts().get(user._id) || 0 }} project(s)
+                </div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <p-tag
+              [value]="roleTag(user.role).label"
+              [severity]="roleTag(user.role).severity"
+              [rounded]="true"
+            />
+          </td>
+          <td>
+            <code class="pin">{{ user.pin }}</code>
+          </td>
+          <td class="tl-projs" [title]="tlProjectsFor(user)">
+            {{ tlProjectsFor(user) }}
+          </td>
+          <td class="contact">
+            @if (user.email) {
+              <div class="c-email">{{ user.email }}</div>
+            }
+            @if (user.mobile) {
+              <div class="c-mobile">{{ user.mobile }}</div>
+            }
+            @if (!user.email && !user.mobile) {
+              <span class="dash">—</span>
+            }
+          </td>
+          <td class="actions">
+            <p-button
+              icon="pi pi-pencil"
+              [rounded]="true"
+              [text]="true"
+              size="small"
+              severity="secondary"
+              pTooltip="Edit / reset PIN"
+              tooltipPosition="left"
+              (onClick)="openEdit(user)"
+            />
+            @if (canDelete(user)) {
+              <p-button
+                icon="pi pi-trash"
+                [rounded]="true"
+                [text]="true"
+                size="small"
+                severity="danger"
+                pTooltip="Remove user"
+                tooltipPosition="left"
+                (onClick)="delete(user, $event)"
+              />
+            }
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</p-card>
+
+<app-user-form-modal
+  [(visible)]="modalOpen"
+  [editing]="editing()"
+  [mode]="modalMode()"
+/>
+
+<p-confirmDialog />

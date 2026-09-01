@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { MenubarModule } from 'primeng/menubar';
@@ -9,7 +9,10 @@ import { TooltipModule } from 'primeng/tooltip';
 
 import { AuthService } from '@core/services/auth.service';
 import { DatabaseService } from '@core/pouchdb/database.service';
+import { UserRepository } from '@core/pouchdb/user.repository';
+import { UserDoc } from '@models/user';
 import { WeekNavComponent } from '@shared/components/week-nav/week-nav.component';
+import { UserFormModalComponent } from '@features/users/user-form-modal/user-form-modal.component';
 
 @Component({
   selector: 'app-shell',
@@ -24,6 +27,7 @@ import { WeekNavComponent } from '@shared/components/week-nav/week-nav.component
     TagModule,
     TooltipModule,
     WeekNavComponent,
+    UserFormModalComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app-shell.component.html',
@@ -32,11 +36,19 @@ import { WeekNavComponent } from '@shared/components/week-nav/week-nav.component
 export class AppShellComponent {
   private readonly auth = inject(AuthService);
   private readonly db = inject(DatabaseService);
+  private readonly users = inject(UserRepository);
 
   readonly user = this.auth.currentUser;
   readonly isPM = this.auth.isPM;
   readonly isTL = this.auth.isTL;
   readonly syncStatus = this.db.syncStatus;
+
+  readonly pinModalOpen = signal(false);
+  readonly pinEditing = computed<UserDoc | null>(() => {
+    const id = this.user()?.id;
+    if (!id) return null;
+    return this.users.get(id) ?? null;
+  });
 
   readonly initials = computed(() => {
     const name = this.user()?.name ?? '';
@@ -60,6 +72,10 @@ export class AppShellComponent {
     if (s === 'offline') return 'warn';
     return 'danger';
   });
+
+  openChangePin(): void {
+    this.pinModalOpen.set(true);
+  }
 
   logout(): void {
     this.auth.logout();

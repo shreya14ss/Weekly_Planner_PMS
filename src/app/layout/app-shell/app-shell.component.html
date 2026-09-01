@@ -60,6 +60,18 @@
         </div>
 
         <p-button
+          icon="pi pi-lock"
+          label="PIN"
+          severity="secondary"
+          [text]="true"
+          size="small"
+          class="!text-white/80 hover:!text-white"
+          pTooltip="Change my PIN"
+          tooltipPosition="bottom"
+          (onClick)="openChangePin()"
+        />
+
+        <p-button
           icon="pi pi-sign-out"
           label="Sign Out"
           severity="secondary"
@@ -135,4 +147,11 @@
   <main class="flex-1 max-w-[1380px] mx-auto w-full p-4 pb-20">
     <router-outlet />
   </main>
+
+  <!-- Change-my-PIN modal, mounted at shell level so it's available everywhere -->
+  <app-user-form-modal
+    [(visible)]="pinModalOpen"
+    [editing]="pinEditing()"
+    mode="change-pin"
+  />
 </div>

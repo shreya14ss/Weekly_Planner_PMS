@@ -1,0 +1,132 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [header]="title()"
+  [modal]="true"
+  [style]="{ width: '440px' }"
+  [breakpoints]="{ '640px': '95vw' }"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+>
+  <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()">
+    @if (showFullForm()) {
+      <div>
+        <label for="um_name" class="lbl">Full Name <span class="text-rose-600">*</span></label>
+        <input
+          id="um_name"
+          pInputText
+          type="text"
+          class="w-full"
+          placeholder="e.g. Mr. Ravi Kumar"
+          [ngModel]="name()"
+          (ngModelChange)="name.set($event)"
+          name="name"
+          [readonly]="nameReadonly()"
+        />
+      </div>
+
+      <div>
+        <label for="um_role" class="lbl">Role</label>
+        <p-select
+          inputId="um_role"
+          [options]="roleOptions"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="role()"
+          (ngModelChange)="role.set($event)"
+          name="role"
+          [disabled]="!canChangeRole()"
+          class="w-full"
+          appendTo="body"
+        />
+        @if (!canChangeRole() && mode() !== 'add') {
+          <div class="hint">
+            Role is locked for this account (seeded PM or the current user).
+          </div>
+        }
+      </div>
+    }
+
+    <div>
+      <label for="um_pin" class="lbl">
+        @if (mode() === 'add') {
+          PIN (4 digits) <span class="text-rose-600">*</span>
+        } @else if (mode() === 'change-pin') {
+          New PIN (4 digits) <span class="text-rose-600">*</span>
+        } @else {
+          New PIN (leave blank to keep existing)
+        }
+      </label>
+      <div id="um_pin" class="flex justify-center">
+        <p-input-otp
+          [ngModel]="pin()"
+          (ngModelChange)="pin.set($event)"
+          [integerOnly]="true"
+          [length]="4"
+          [mask]="true"
+          name="pin"
+        />
+      </div>
+    </div>
+
+    <div>
+      <label for="um_pin2" class="lbl">Confirm PIN</label>
+      <div id="um_pin2" class="flex justify-center">
+        <p-input-otp
+          [ngModel]="pin2()"
+          (ngModelChange)="pin2.set($event)"
+          [integerOnly]="true"
+          [length]="4"
+          [mask]="true"
+          name="pin2"
+        />
+      </div>
+    </div>
+
+    @if (showFullForm()) {
+      <div>
+        <label for="um_email" class="lbl">Email <span class="opt">(optional)</span></label>
+        <input
+          id="um_email"
+          pInputText
+          type="email"
+          class="w-full"
+          placeholder="user@company.com"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
+          name="email"
+        />
+      </div>
+
+      <div>
+        <label for="um_mobile" class="lbl">Mobile <span class="opt">(optional)</span></label>
+        <input
+          id="um_mobile"
+          pInputText
+          type="tel"
+          class="w-full"
+          placeholder="+91 XXXXX XXXXX"
+          [ngModel]="mobile()"
+          (ngModelChange)="mobile.set($event)"
+          name="mobile"
+        />
+      </div>
+    }
+
+    @if (error()) {
+      <p-message severity="error">{{ error() }}</p-message>
+    }
+  </form>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="cancel()" />
+    <p-button
+      [label]="saveLabel()"
+      icon="pi pi-check"
+      severity="primary"
+      [loading]="submitting()"
+      (onClick)="save()"
+    />
+  </ng-template>
+</p-dialog>
