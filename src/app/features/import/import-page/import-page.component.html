@@ -76,7 +76,7 @@
           <span class="stat"><b>{{ f.preview.audit }}</b> audit entries</span>
         </div>
         @for (w of f.preview.warnings; track w) {
-          <div class="text-xs text-amber-700 mt-1">⚠ {{ w }}</div>
+          <div class="text-xs text-amber-700 mt-1"><i class="pi pi-exclamation-triangle"></i> {{ w }}</div>
         }
 
         <div class="mode-row">
@@ -135,7 +135,7 @@
           <span class="stat"><b>{{ x.preview.projects }}</b> project rows</span>
         </div>
         @for (w of x.preview.warnings; track w) {
-          <div class="text-xs text-amber-700 mt-1">⚠ {{ w }}</div>
+          <div class="text-xs text-amber-700 mt-1"><i class="pi pi-exclamation-triangle"></i> {{ w }}</div>
         }
 
         <div class="mode-row">
@@ -194,7 +194,7 @@
           <span class="stat"><b>{{ x.preview.users }}</b> user rows</span>
         </div>
         @for (w of x.preview.warnings; track w) {
-          <div class="text-xs text-amber-700 mt-1">⚠ {{ w }}</div>
+          <div class="text-xs text-amber-700 mt-1"><i class="pi pi-exclamation-triangle"></i> {{ w }}</div>
         }
 
         <div class="mode-row">

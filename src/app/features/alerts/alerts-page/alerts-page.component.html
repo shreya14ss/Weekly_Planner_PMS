@@ -2,7 +2,7 @@
   <ng-template pTemplate="header">
     <div class="card-hdr">
       <div>
-        <div class="title">🔔 Alerts &amp; Action Items</div>
+        <div class="title"><i class="pi pi-bell"></i> Alerts &amp; Action Items</div>
         <div class="sub">Projects and tasks that need immediate attention</div>
       </div>
       <div class="filters">
@@ -45,18 +45,18 @@
     <!-- Overdue projects -->
     @if (alerts.overdue().length > 0) {
       <h3 class="sec-title sec-high">
-        🔴 Overdue Projects
+        <i class="pi pi-circle-fill"></i> Overdue Projects
         <span class="sec-count">{{ alerts.overdue().length }}</span>
       </h3>
       <div class="alerts-list">
         @for (a of alerts.overdue(); track a.project._id) {
           <article class="alert sev-high">
-            <div class="alert-icon">🔴</div>
+            <div class="alert-icon"><i class="pi pi-circle-fill text-rose-600"></i></div>
             <div class="alert-body">
               <div class="alert-title">{{ a.displayName }}</div>
               <div class="alert-meta">
-                <span>📆 {{ a.project.client }}</span>
-                <span>👥 {{ a.project.tls.join(', ') || a.project.engineers.slice(0, 2).join(', ') || 'Unassigned' }}</span>
+                <span><i class="pi pi-calendar"></i> {{ a.project.client }}</span>
+                <span><i class="pi pi-users"></i> {{ a.project.tls.join(', ') || a.project.engineers.slice(0, 2).join(', ') || 'Unassigned' }}</span>
                 <app-status-chip [status]="a.project.status" />
               </div>
               <div class="alert-desc">
@@ -83,18 +83,18 @@
     <!-- Task delays -->
     @if (alerts.taskDelays().length > 0) {
       <h3 class="sec-title sec-high">
-        ⚠ Tasks Marked as Delay
+        <i class="pi pi-exclamation-triangle"></i> Tasks Marked as Delay
         <span class="sec-count">{{ alerts.taskDelays().length }}</span>
       </h3>
       <div class="alerts-list">
         @for (a of alerts.taskDelays(); track a.project._id + a.taskId) {
           <article class="alert sev-high">
-            <div class="alert-icon">⚠</div>
+            <div class="alert-icon"><i class="pi pi-exclamation-triangle text-rose-600"></i></div>
             <div class="alert-body">
               <div class="alert-title">{{ a.displayName }}</div>
               <div class="alert-meta">
-                <span>📆 {{ a.project.client }}</span>
-                <span>👥 {{ a.project.tls.join(', ') || a.project.engineers.slice(0, 2).join(', ') || 'Unassigned' }}</span>
+                <span><i class="pi pi-calendar"></i> {{ a.project.client }}</span>
+                <span><i class="pi pi-users"></i> {{ a.project.tls.join(', ') || a.project.engineers.slice(0, 2).join(', ') || 'Unassigned' }}</span>
                 <app-status-chip [status]="a.project.status" />
               </div>
               <div class="alert-desc">
@@ -126,18 +126,18 @@
     <!-- On hold -->
     @if (alerts.onHold().length > 0) {
       <h3 class="sec-title sec-med">
-        ▪ Projects On Hold
+        <i class="pi pi-pause"></i> Projects On Hold
         <span class="sec-count">{{ alerts.onHold().length }}</span>
       </h3>
       <div class="alerts-list">
         @for (a of alerts.onHold(); track a.project._id) {
           <article class="alert sev-med">
-            <div class="alert-icon">▪</div>
+            <div class="alert-icon"><i class="pi pi-pause text-amber-600"></i></div>
             <div class="alert-body">
               <div class="alert-title">{{ a.displayName }}</div>
               <div class="alert-meta">
-                <span>📆 {{ a.project.client }}</span>
-                <span>👥 {{ a.project.tls.join(', ') || a.project.engineers.slice(0, 2).join(', ') || 'Unassigned' }}</span>
+                <span><i class="pi pi-calendar"></i> {{ a.project.client }}</span>
+                <span><i class="pi pi-users"></i> {{ a.project.tls.join(', ') || a.project.engineers.slice(0, 2).join(', ') || 'Unassigned' }}</span>
               </div>
               <div class="alert-desc reason">{{ a.reason }}</div>
             </div>
@@ -159,18 +159,18 @@
     <!-- No updates -->
     @if (alerts.noUpdate().length > 0) {
       <h3 class="sec-title sec-info">
-        ○ Active Projects with No Updates
+        <i class="pi pi-circle"></i> Active Projects with No Updates
         <span class="sec-count">{{ alerts.noUpdate().length }}</span>
       </h3>
       <div class="alerts-list">
         @for (a of alerts.noUpdate(); track a.project._id) {
           <article class="alert sev-info">
-            <div class="alert-icon">○</div>
+            <div class="alert-icon"><i class="pi pi-circle text-sky-600"></i></div>
             <div class="alert-body">
               <div class="alert-title">{{ a.displayName }}</div>
               <div class="alert-meta">
-                <span>📆 {{ a.project.client }}</span>
-                <span>👥 {{ a.project.tls.join(', ') || a.project.engineers.slice(0, 2).join(', ') || 'Unassigned' }}</span>
+                <span><i class="pi pi-calendar"></i> {{ a.project.client }}</span>
+                <span><i class="pi pi-users"></i> {{ a.project.tls.join(', ') || a.project.engineers.slice(0, 2).join(', ') || 'Unassigned' }}</span>
                 <app-status-chip [status]="a.project.status" />
               </div>
               <div class="alert-desc">

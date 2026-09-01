@@ -22,6 +22,7 @@ import { UserFormModalComponent, UserModalMode } from '@features/users/user-form
 interface RoleFilterOption {
   value: 'all' | UserRole;
   label: string;
+  icon?: string;
   cls: string;
 }
 
@@ -58,9 +59,9 @@ export class UsersPageComponent {
 
   protected readonly roleFilters: RoleFilterOption[] = [
     { value: 'all', label: 'All Users', cls: 'rf-all' },
-    { value: 'pm', label: '⭐ PM', cls: 'rf-pm' },
-    { value: 'tl', label: '👥 TL', cls: 'rf-tl' },
-    { value: 'user', label: '👤 User', cls: 'rf-user' },
+    { value: 'pm', label: 'PM', icon: 'pi-star-fill', cls: 'rf-pm' },
+    { value: 'tl', label: 'TL', icon: 'pi-users', cls: 'rf-tl' },
+    { value: 'user', label: 'User', icon: 'pi-user', cls: 'rf-user' },
   ];
 
   protected readonly filtered = computed(() => {

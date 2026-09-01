@@ -2,7 +2,7 @@
   <ng-template pTemplate="header">
     <div class="card-hdr">
       <div>
-        <div class="title">👥 Team Members &amp; Access</div>
+        <div class="title"><i class="pi pi-users"></i> Team Members &amp; Access</div>
         <div class="sub">{{ users.all().length }} total users — add, edit, or reassign PINs</div>
       </div>
       <div class="hdr-actions">
@@ -44,6 +44,9 @@
         [class.rf-active]="roleFilter() === opt.value"
         (click)="roleFilter.set(opt.value)"
       >
+        @if (opt.icon) {
+          <i class="pi" [class]="'pi ' + opt.icon"></i>
+        }
         {{ opt.label }}
       </button>
     }

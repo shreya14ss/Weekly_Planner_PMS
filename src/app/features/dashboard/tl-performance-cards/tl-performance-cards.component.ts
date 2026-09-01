@@ -44,9 +44,9 @@ export class TlPerformanceCardsComponent {
     return '#059669';
   }
 
-  protected delayAssessment(row: TlPerformanceRow): string {
-    if (row.delayRate >= 40) return '⚠ High — needs review';
-    if (row.delayRate >= 20) return 'ℹ Moderate';
-    return '✓ On track';
+  protected delayAssessment(row: TlPerformanceRow): { icon: string; label: string } {
+    if (row.delayRate >= 40) return { icon: 'pi-exclamation-triangle', label: 'High — needs review' };
+    if (row.delayRate >= 20) return { icon: 'pi-info-circle', label: 'Moderate' };
+    return { icon: 'pi-check', label: 'On track' };
   }
 }

@@ -53,19 +53,19 @@
             <div class="tasks-wrap">
               <div class="counts">
                 @if (r.taskCounts.done > 0) {
-                  <span class="c c-done">✓ {{ r.taskCounts.done }}</span>
+                  <span class="c c-done"><i class="pi pi-check"></i> {{ r.taskCounts.done }}</span>
                 }
                 @if (r.taskCounts.inProgress > 0) {
-                  <span class="c c-ip">◐ {{ r.taskCounts.inProgress }}</span>
+                  <span class="c c-ip"><i class="pi pi-spinner"></i> {{ r.taskCounts.inProgress }}</span>
                 }
                 @if (r.taskCounts.hold > 0) {
-                  <span class="c c-hold">▪ {{ r.taskCounts.hold }}</span>
+                  <span class="c c-hold"><i class="pi pi-pause"></i> {{ r.taskCounts.hold }}</span>
                 }
                 @if (r.taskCounts.delayed > 0) {
-                  <span class="c c-del">⚠ {{ r.taskCounts.delayed }}</span>
+                  <span class="c c-del"><i class="pi pi-exclamation-triangle"></i> {{ r.taskCounts.delayed }}</span>
                 }
                 @if (r.taskCounts.notStarted > 0) {
-                  <span class="c c-ns">○ {{ r.taskCounts.notStarted }}</span>
+                  <span class="c c-ns"><i class="pi pi-circle"></i> {{ r.taskCounts.notStarted }}</span>
                 }
                 <span class="pct">{{ r.taskCounts.progressPct }}%</span>
               </div>

@@ -2,7 +2,7 @@
   <ng-template pTemplate="header">
     <div class="card-hdr">
       <div>
-        <div class="title">✓ Completed Projects</div>
+        <div class="title"><i class="pi pi-check-circle"></i> Completed Projects</div>
         <div class="sub">All finished, handed over, and SAVT projects</div>
       </div>
       <div class="filters">
@@ -52,7 +52,7 @@
     <div class="list">
       @for (r of completed.rows(); track r.project._id) {
         <article class="comp-card">
-          <div class="check-icon">✓</div>
+          <div class="check-icon"><i class="pi pi-check"></i></div>
           <div class="body">
             <!-- Header row -->
             <div class="head-row">
@@ -80,18 +80,18 @@
             <!-- Meta -->
             <div class="meta">
               <div class="meta-cell">
-                <span class="meta-lbl">✅ Completed by</span>
+                <span class="meta-lbl"><i class="pi pi-check-circle"></i> Completed by</span>
                 <strong>{{ r.completedBy }}</strong>
               </div>
               @if (r.completedAt) {
                 <div class="meta-cell">
-                  <span class="meta-lbl">📅 Date</span>
+                  <span class="meta-lbl"><i class="pi pi-calendar"></i> Date</span>
                   <strong>{{ r.completedAt }}</strong>
                 </div>
               }
               @if (r.targetDate) {
                 <div class="meta-cell">
-                  <span class="meta-lbl">🎯 Target</span>
+                  <span class="meta-lbl"><i class="pi pi-flag"></i> Target</span>
                   <strong>{{ r.targetDate }}</strong>
                 </div>
               }
@@ -100,20 +100,20 @@
             <!-- Team -->
             <div class="team">
               <span>
-                👥 <span class="team-lbl">TL:</span>
+                <i class="pi pi-users"></i> <span class="team-lbl">TL:</span>
                 <strong>{{ r.tls.join(', ') || '—' }}</strong>
               </span>
               <span>
-                👷 <span class="team-lbl">Engineers:</span>
+                <i class="pi pi-user"></i> <span class="team-lbl">Engineers:</span>
                 <strong>{{ r.engineers.join(', ') || '—' }}</strong>
               </span>
             </div>
 
             @if (r.weeklyTarget) {
-              <div class="goal">🎯 Goal: <em>{{ r.weeklyTarget }}</em></div>
+              <div class="goal"><i class="pi pi-flag"></i> Goal: <em>{{ r.weeklyTarget }}</em></div>
             }
             @if (r.description) {
-              <div class="desc">📝 {{ r.description }}</div>
+              <div class="desc"><i class="pi pi-pencil"></i> {{ r.description }}</div>
             }
 
             <!-- Task summary -->
@@ -121,12 +121,12 @@
               <div class="tasks">
                 <div class="tasks-hdr">
                   <span class="tasks-title">Tasks</span>
-                  <span class="tc tc-done">✓ {{ r.taskCounts.done }}/{{ r.taskCounts.total }} done</span>
+                  <span class="tc tc-done"><i class="pi pi-check"></i> {{ r.taskCounts.done }}/{{ r.taskCounts.total }} done</span>
                   @if (r.taskCounts.delayed > 0) {
-                    <span class="tc tc-del">⚠ {{ r.taskCounts.delayed }} delayed</span>
+                    <span class="tc tc-del"><i class="pi pi-exclamation-triangle"></i> {{ r.taskCounts.delayed }} delayed</span>
                   }
                   @if (r.taskCounts.incomplete > 0) {
-                    <span class="tc tc-inc">⚠ {{ r.taskCounts.incomplete }} incomplete</span>
+                    <span class="tc tc-inc"><i class="pi pi-exclamation-triangle"></i> {{ r.taskCounts.incomplete }} incomplete</span>
                   }
                 </div>
                 <div class="tasks-list">

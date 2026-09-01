@@ -54,19 +54,19 @@
 
         <div class="stats">
           @if (row.done > 0) {
-            <span class="stat s-done">✓ {{ row.done }} Done</span>
+            <span class="stat s-done"><i class="pi pi-check"></i> {{ row.done }} Done</span>
           }
           @if (row.inProgress > 0) {
-            <span class="stat s-ip">◐ {{ row.inProgress }} Active</span>
+            <span class="stat s-ip"><i class="pi pi-spinner"></i> {{ row.inProgress }} Active</span>
           }
           @if (row.hold > 0) {
-            <span class="stat s-hold">▪ {{ row.hold }} Hold</span>
+            <span class="stat s-hold"><i class="pi pi-pause"></i> {{ row.hold }} Hold</span>
           }
           @if (row.delayed > 0) {
-            <span class="stat s-del">⚠ {{ row.delayed }} Delay</span>
+            <span class="stat s-del"><i class="pi pi-exclamation-triangle"></i> {{ row.delayed }} Delay</span>
           }
           @if (row.notStarted > 0) {
-            <span class="stat s-ns">○ {{ row.notStarted }} Not Started</span>
+            <span class="stat s-ns"><i class="pi pi-circle"></i> {{ row.notStarted }} Not Started</span>
           }
         </div>
 
@@ -75,7 +75,10 @@
           <span class="delay-pct" [style.color]="row.delayRate >= 20 ? '#dc2626' : '#059669'">
             {{ row.delayRate }}%
           </span>
-          <span class="delay-note">{{ delayAssessment(row) }}</span>
+          <span class="delay-note">
+            <i class="pi" [class]="'pi ' + delayAssessment(row).icon"></i>
+            {{ delayAssessment(row).label }}
+          </span>
         </div>
       </article>
     }
