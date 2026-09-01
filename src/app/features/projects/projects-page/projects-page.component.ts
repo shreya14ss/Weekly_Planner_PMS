@@ -14,6 +14,7 @@ import { WeekStateService } from '@core/services/week-state.service';
 import { ProjectFilterService } from '@features/projects/project-filter.service';
 import { AddProjectModalComponent } from '@features/projects/add-project-modal/add-project-modal.component';
 import { ProjectCardComponent } from '@features/projects/project-card/project-card.component';
+import { PendingTasksBarComponent } from '@features/projects/pending-tasks-bar/pending-tasks-bar.component';
 
 /**
  * Projects page:
@@ -38,6 +39,7 @@ import { ProjectCardComponent } from '@features/projects/project-card/project-ca
     TooltipModule,
     AddProjectModalComponent,
     ProjectCardComponent,
+    PendingTasksBarComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './projects-page.component.html',

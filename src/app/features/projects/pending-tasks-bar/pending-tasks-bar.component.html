@@ -1,0 +1,106 @@
+@if (total() > 0 || loading()) {
+  <section class="pending-bar">
+    <header class="pb-head">
+      <button type="button" class="pb-toggle" [attr.aria-expanded]="!collapsed()" (click)="toggle()">
+        <i class="pi" [class.pi-chevron-down]="!collapsed()" [class.pi-chevron-right]="collapsed()"></i>
+        <span class="pb-title">
+          <i class="pi pi-clock text-amber-600"></i>
+          Pending from previous weeks
+          @if (total() > 0) {
+            <span class="pb-badge">{{ total() }}</span>
+          }
+        </span>
+      </button>
+
+      <div class="pb-actions">
+        <p-button
+          icon="pi pi-refresh"
+          [rounded]="true"
+          [text]="true"
+          severity="secondary"
+          size="small"
+          pTooltip="Refresh"
+          tooltipPosition="left"
+          [loading]="loading()"
+          (onClick)="refresh()"
+        />
+        @if (total() > 0) {
+          <p-button
+            icon="pi pi-arrow-right"
+            label="Move all to this week"
+            severity="warn"
+            size="small"
+            (onClick)="moveAllToCurrent()"
+          />
+        }
+      </div>
+    </header>
+
+    @if (!collapsed()) {
+      @if (loading()) {
+        <div class="pb-loading">
+          <i class="pi pi-spinner pi-spin mr-2"></i>
+          Scanning previous weeks…
+        </div>
+      } @else if (total() === 0) {
+        <div class="pb-empty">
+          <i class="pi pi-check-circle text-emerald-500"></i>
+          Nothing pending from the last 4 weeks — you're caught up.
+        </div>
+      } @else {
+        <div class="pb-list">
+          @for (row of rows(); track row.item.task.id) {
+            <div
+              class="pb-row"
+              [class.pb-critical]="row.delayDays >= 14"
+              [class.pb-high]="row.delayDays >= 7 && row.delayDays < 14"
+              [class.pb-medium]="row.delayDays < 7"
+            >
+              <div class="pb-rank" [class.rank-1]="row.rank === 1" [class.rank-2]="row.rank === 2" [class.rank-3]="row.rank === 3">
+                #{{ row.rank }}
+              </div>
+
+              <div class="pb-body">
+                <div class="pb-top-line">
+                  <span class="pb-client">{{ row.projectClient }}</span>
+                  <span class="pb-proj">{{ row.projectName }}</span>
+                  <span class="pb-task">{{ row.item.task.name || 'Untitled task' }}</span>
+                  <span class="pb-delay">
+                    <i class="pi pi-clock"></i>
+                    {{ row.delayDays }}d delayed
+                  </span>
+                  <span class="pb-origin">From: {{ row.originWeekLabel }}</span>
+                </div>
+
+                @if (row.assigneeNames.length) {
+                  <div class="pb-assignees">
+                    <i class="pi pi-users"></i>
+                    {{ row.assigneeNames.join(', ') }}
+                  </div>
+                }
+              </div>
+
+              <div class="pb-move">
+                <p-button
+                  label="This wk"
+                  icon="pi pi-arrow-down"
+                  size="small"
+                  severity="success"
+                  (onClick)="move(row, currentWeek())"
+                />
+                <p-button
+                  label="Next wk"
+                  icon="pi pi-arrow-right"
+                  size="small"
+                  severity="secondary"
+                  [outlined]="true"
+                  (onClick)="move(row, nextWeekIso())"
+                />
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+  </section>
+}

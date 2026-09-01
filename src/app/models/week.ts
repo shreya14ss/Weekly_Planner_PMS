@@ -74,3 +74,10 @@ export interface WeekDoc extends BaseDoc {
   /** Keyed by project id (the ProjectDoc._id). */
   entries: Record<string, ProjectWeekEntry>;
 }
+
+/** A pending (non-completed) task from a prior week, ready to carry-forward. */
+export interface PendingTaskItem {
+  week: IsoDate;
+  projectId: string;
+  task: WeekTask;
+}

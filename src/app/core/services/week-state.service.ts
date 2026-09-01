@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { IsoDate } from '@models/common';
-import { ProjectWeekEntry, TaskStatus, WeekTask } from '@models/week';
+import { PendingTaskItem, ProjectWeekEntry, TaskStatus, WeekTask } from '@models/week';
 import { WeekRepository } from '@core/pouchdb/week.repository';
 import { AuditRepository } from '@core/pouchdb/audit.repository';
 import { AuthService } from '@core/services/auth.service';
@@ -177,6 +177,110 @@ export class WeekStateService {
       else next[k] = v;
     }
     return next as unknown as WeekTask;
+  }
+
+  /* ------------------------------------------------------------------
+   * Carry-forward
+   *
+   * A pending task is one from a previous week that is not `completed`
+   * and hasn't already been carried into the current week. Carrying
+   * writes a fresh copy into the target week (leaving the source
+   * intact as an audit trail) with `carriedFrom`, `carriedWeek`, and
+   * `originalWeek` set so the delay counter keeps ticking.
+   * ---------------------------------------------------------------- */
+
+  async loadPending(maxWeeks = 4): Promise<PendingTaskItem[]> {
+    const current = this._loadedWeek();
+    // Anything already carried in — filter it out to avoid duplicates.
+    const carriedIn = new Set<string>();
+    for (const entry of Object.values(this._entries())) {
+      for (const t of entry.weekTasks ?? []) {
+        if (t.carriedFrom) carriedIn.add(t.carriedFrom);
+      }
+    }
+
+    const items: PendingTaskItem[] = [];
+    for (let i = 1; i <= maxWeeks; i++) {
+      const week = addWeeks(current, -i);
+      const doc = await this.weekRepo.load(week);
+      if (!doc) continue;
+      for (const [projectId, entry] of Object.entries(doc.entries)) {
+        for (const task of entry.weekTasks ?? []) {
+          if (task.status === 'completed') continue;
+          if (carriedIn.has(task.id)) continue;
+          items.push({ week, projectId, task });
+        }
+      }
+    }
+    return items;
+  }
+
+  /**
+   * Copy a task from `fromWeek` into `toWeek`. Preserves due date and
+   * assignees. Completed status resets to `todo` (a completed task
+   * doesn't logically carry).
+   *
+   * Writes directly through WeekRepository — does NOT go through the
+   * dirty/save flow because the target week isn't necessarily the one
+   * the user is looking at, and this is a deliberate action anyway.
+   */
+  async carryTask(
+    fromWeek: IsoDate,
+    projectId: string,
+    taskId: string,
+    toWeek: IsoDate,
+  ): Promise<void> {
+    const srcDoc = await this.weekRepo.load(fromWeek);
+    const srcTask = srcDoc?.entries[projectId]?.weekTasks?.find((t) => t.id === taskId);
+    if (!srcTask) throw new Error(`Source task ${taskId} not found in week ${fromWeek}`);
+
+    const originalWeek = srcTask.originalWeek ?? srcTask.carriedWeek ?? fromWeek;
+    const inheritedStatus: TaskStatus = srcTask.status === 'completed' ? 'todo' : srcTask.status;
+
+    const newTask: WeekTask = {
+      id: 'wt_' + shortId(),
+      name: srcTask.name,
+      status: inheritedStatus,
+      assignedTo: [...srcTask.assignedTo],
+      remark: srcTask.remark,
+      taskDueDate: srcTask.taskDueDate,
+      carriedFrom: srcTask.id,
+      carriedWeek: fromWeek,
+      originalWeek,
+    };
+
+    // If we're carrying into the currently-loaded week, mutate live
+    // state via patchEntry so the UI updates without a reload AND the
+    // save/discard flow catches it. Otherwise, write straight through
+    // the repository.
+    if (toWeek === this._loadedWeek()) {
+      const currentEntry = this._entries()[projectId] ?? {};
+      const nextTasks = [...(currentEntry.weekTasks ?? []), newTask];
+      this.patchEntry(projectId, { weekTasks: nextTasks });
+    } else {
+      const tgtDoc = await this.weekRepo.load(toWeek);
+      const tgtEntry: ProjectWeekEntry = tgtDoc?.entries[projectId] ?? {};
+      const now = new Date().toISOString();
+      const nextEntry: ProjectWeekEntry = {
+        ...tgtEntry,
+        weekTasks: [...(tgtEntry.weekTasks ?? []), newTask],
+        _lastEditBy: this.auth.currentUser()?.name ?? 'System',
+        _lastEditAt: now,
+      };
+      await this.weekRepo.upsertEntry(toWeek, projectId, nextEntry);
+    }
+
+    const user = this.auth.currentUser();
+    if (user) {
+      this.audit.record({
+        userId: user.id,
+        userName: user.name,
+        role: user.role,
+        action: 'Task Moved',
+        project: projectId,
+        detail: `"${srcTask.name}" carried from ${fromWeek} to ${toWeek}`,
+      });
+    }
   }
 
   discardProject(projectId: string): void {
