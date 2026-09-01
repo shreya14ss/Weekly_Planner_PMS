@@ -53,19 +53,41 @@
 }
 
 /*
- * The p-select's internal label is the visible value area — override its
- * default vertical padding so it visually matches the OTP inputs.
+ * p-select host — we DON'T set `display: block` because PrimeNG's inner
+ * `.p-select` is `display: inline-flex`, and forcing the host to `block`
+ * decouples the sizing chain, which caused the label + chevron to stack
+ * vertically. Instead we keep the host inline and stretch it via width.
  */
-:host ::ng-deep .p-select {
+.login-select {
+  display: inline-flex;
   width: 100%;
+}
+
+:host ::ng-deep .login-select {
+  .p-select {
+    display: inline-flex;
+    align-items: center;
+    width: 100%;
+    min-height: 3rem;
+  }
 
   .p-select-label {
+    flex: 1 1 auto;
     padding: 0.75rem 0.875rem;
     font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .p-select-dropdown {
+    flex: 0 0 auto;
+    padding: 0 0.875rem;
+    color: #64748b;
   }
 }
 
-/* Full-width primary button with generous vertical padding */
+/* Full-width primary button with generous letter spacing */
 :host ::ng-deep .p-button {
   width: 100%;
   justify-content: center;
