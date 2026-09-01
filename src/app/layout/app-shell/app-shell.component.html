@@ -119,6 +119,15 @@
           <i class="pi pi-history"></i> History
         </a>
       }
+      @if (isPM()) {
+        <a
+          routerLink="/app/import"
+          routerLinkActive="text-white border-rbh-accent"
+          class="px-4 py-2.5 text-sm font-semibold text-white/60 hover:text-white border-b-[3px] border-transparent transition flex items-center gap-2"
+        >
+          <i class="pi pi-cloud-upload"></i> Import
+        </a>
+      }
     </nav>
   </header>
 

@@ -1,0 +1,221 @@
+<header class="page-head">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-800">Data Import</h1>
+    <p class="text-sm text-slate-500 mt-1">
+      One-shot migration from the legacy Firebase export or the Excel spreadsheets.
+      IDs are derived deterministically, so re-running a merge is safe.
+    </p>
+  </div>
+</header>
+
+@if (error()) {
+  <p-message severity="error" class="block mb-4">{{ error() }}</p-message>
+}
+
+@if (result(); as r) {
+  <p-message severity="success" class="block mb-4">
+    <div class="text-sm">
+      <b>Import complete.</b>
+      <span class="ml-2">Wrote {{ r.result.written }} doc(s):</span>
+      <span class="ml-1">
+        {{ r.result.users }} users ·
+        {{ r.result.projects }} projects ·
+        {{ r.result.weeks }} weeks ·
+        {{ r.result.audit }} audit entries
+      </span>
+      @if (r.result.errors.length) {
+        <div class="mt-2 text-rose-700 text-xs">
+          {{ r.result.errors.length }} row(s) failed:
+          <ul class="list-disc list-inside mt-1">
+            @for (e of r.result.errors.slice(0, 5); track e) {
+              <li>{{ e }}</li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  </p-message>
+}
+
+<div class="flex flex-col gap-4">
+  <!-- Firebase JSON -->
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="card-hdr">
+        <i class="pi pi-database text-orange-600"></i>
+        <span>Firebase RTDB Export (JSON)</span>
+        <p-tag value="Recommended" severity="warn" [rounded]="true" />
+      </div>
+    </ng-template>
+    <p class="text-sm text-slate-600 mb-4">
+      Full historical import — projects, users, weekly task entries, and audit trail.
+      Use this if you have <code class="bg-slate-100 px-1 rounded">rbhpms1-default-rtdb-export.json</code> from the old app.
+    </p>
+
+    <div class="drop-zone">
+      <label for="fbFile" class="drop-label">
+        <i class="pi pi-cloud-upload text-4xl text-slate-400 block mb-2"></i>
+        <span class="text-sm font-semibold text-slate-700">Click to select</span>
+        <span class="text-xs text-slate-500 block mt-1">Accepts .json</span>
+      </label>
+      <input
+        id="fbFile"
+        type="file"
+        accept=".json,application/json"
+        (change)="onFirebaseFile($any($event.target).files?.[0] ?? null)"
+      />
+    </div>
+
+    @if (firebase(); as f) {
+      <div class="preview">
+        <div class="preview-title">Preview</div>
+        <div class="preview-stats">
+          <span class="stat"><b>{{ f.preview.projects }}</b> projects</span>
+          <span class="stat"><b>{{ f.preview.users }}</b> users</span>
+          <span class="stat"><b>{{ f.preview.weeks }}</b> weeks</span>
+          <span class="stat"><b>{{ f.preview.audit }}</b> audit entries</span>
+        </div>
+        @for (w of f.preview.warnings; track w) {
+          <div class="text-xs text-amber-700 mt-1">⚠ {{ w }}</div>
+        }
+
+        <div class="mode-row">
+          <span class="mode-label">Mode</span>
+          <p-selectButton
+            [options]="mergeOptions"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="firebaseMode()"
+            (ngModelChange)="firebaseMode.set($event)"
+          />
+        </div>
+
+        <p-button
+          label="Import Firebase Data"
+          icon="pi pi-download"
+          severity="primary"
+          [loading]="busy() === 'firebase'"
+          (onClick)="runFirebase()"
+        />
+      </div>
+    }
+  </p-card>
+
+  <!-- Projects Excel -->
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="card-hdr">
+        <i class="pi pi-briefcase text-blue-600"></i>
+        <span>Projects Spreadsheet</span>
+      </div>
+    </ng-template>
+    <p class="text-sm text-slate-600 mb-4">
+      Just the project list. Use this if you don't need the historical weekly data.
+      Columns expected: S.No, Client, Project Name, Engineers, Status, Description, Remarks.
+    </p>
+
+    <div class="drop-zone">
+      <label for="projFile" class="drop-label">
+        <i class="pi pi-file-excel text-4xl text-emerald-500 block mb-2"></i>
+        <span class="text-sm font-semibold text-slate-700">Click to select</span>
+        <span class="text-xs text-slate-500 block mt-1">Accepts .xlsx, .xls</span>
+      </label>
+      <input
+        id="projFile"
+        type="file"
+        accept=".xlsx,.xls"
+        (change)="onProjectsFile($any($event.target).files?.[0] ?? null)"
+      />
+    </div>
+
+    @if (projectsXlsx(); as x) {
+      <div class="preview">
+        <div class="preview-title">Preview</div>
+        <div class="preview-stats">
+          <span class="stat"><b>{{ x.preview.projects }}</b> project rows</span>
+        </div>
+        @for (w of x.preview.warnings; track w) {
+          <div class="text-xs text-amber-700 mt-1">⚠ {{ w }}</div>
+        }
+
+        <div class="mode-row">
+          <span class="mode-label">Mode</span>
+          <p-selectButton
+            [options]="mergeOptions"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="projectsMode()"
+            (ngModelChange)="projectsMode.set($event)"
+          />
+        </div>
+
+        <p-button
+          label="Import Projects"
+          icon="pi pi-download"
+          severity="primary"
+          [loading]="busy() === 'projects'"
+          (onClick)="runProjectsXlsx()"
+        />
+      </div>
+    }
+  </p-card>
+
+  <!-- Users Excel -->
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="card-hdr">
+        <i class="pi pi-users text-violet-600"></i>
+        <span>Users Spreadsheet</span>
+      </div>
+    </ng-template>
+    <p class="text-sm text-slate-600 mb-4">
+      Team members with PINs. Columns expected: Name, Role, PIN, Email, Mobile.
+      Leading zeros on numeric PINs are preserved.
+    </p>
+
+    <div class="drop-zone">
+      <label for="usersFile" class="drop-label">
+        <i class="pi pi-file-excel text-4xl text-emerald-500 block mb-2"></i>
+        <span class="text-sm font-semibold text-slate-700">Click to select</span>
+        <span class="text-xs text-slate-500 block mt-1">Accepts .xlsx, .xls</span>
+      </label>
+      <input
+        id="usersFile"
+        type="file"
+        accept=".xlsx,.xls"
+        (change)="onUsersFile($any($event.target).files?.[0] ?? null)"
+      />
+    </div>
+
+    @if (usersXlsx(); as x) {
+      <div class="preview">
+        <div class="preview-title">Preview</div>
+        <div class="preview-stats">
+          <span class="stat"><b>{{ x.preview.users }}</b> user rows</span>
+        </div>
+        @for (w of x.preview.warnings; track w) {
+          <div class="text-xs text-amber-700 mt-1">⚠ {{ w }}</div>
+        }
+
+        <div class="mode-row">
+          <span class="mode-label">Mode</span>
+          <p-selectButton
+            [options]="mergeOptions"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="usersMode()"
+            (ngModelChange)="usersMode.set($event)"
+          />
+        </div>
+
+        <p-button
+          label="Import Users"
+          icon="pi pi-download"
+          severity="primary"
+          [loading]="busy() === 'users'"
+          (onClick)="runUsersXlsx()"
+        />
+      </div>
+    }
+  </p-card>
+</div>

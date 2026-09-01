@@ -60,6 +60,14 @@ export const routes: Routes = [
             (m) => m.HistoryPageComponent,
           ),
       },
+      {
+        path: 'import',
+        canActivate: [roleGuard(['pm'])],
+        loadComponent: () =>
+          import('@features/import/import-page/import-page.component').then(
+            (m) => m.ImportPageComponent,
+          ),
+      },
     ],
   },
   { path: '', pathMatch: 'full', redirectTo: 'login' },
