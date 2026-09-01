@@ -27,7 +27,9 @@
       </div>
 
       <div>
-        <label for="um_role" class="lbl">Role</label>
+        <label for="um_role" class="lbl">
+          Role <span class="text-rose-600">*</span>
+        </label>
         <p-select
           inputId="um_role"
           [options]="roleOptions"
@@ -86,7 +88,9 @@
 
     @if (showFullForm()) {
       <div>
-        <label for="um_email" class="lbl">Email <span class="opt">(optional)</span></label>
+        <label for="um_email" class="lbl">
+          Email <span class="text-rose-600">*</span>
+        </label>
         <input
           id="um_email"
           pInputText
@@ -126,6 +130,7 @@
       icon="pi pi-check"
       severity="primary"
       [loading]="submitting()"
+      [disabled]="!canSave() || submitting()"
       (onClick)="save()"
     />
   </ng-template>

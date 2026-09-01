@@ -103,6 +103,41 @@ export class UserFormModalComponent {
     return this.auth.role() === 'pm';
   });
 
+  /**
+   * Save button enable state. Add mode requires the full form; edit
+   * mode only requires PIN validity when the PIN was actually changed;
+   * change-pin only requires a valid new PIN + confirm.
+   */
+  readonly canSave = computed(() => {
+    const mode = this.mode();
+    const pin = this.pin();
+    const pin2 = this.pin2();
+
+    if (mode === 'change-pin') {
+      return /^\d{4}$/.test(pin) && pin === pin2;
+    }
+
+    if (mode === 'add') {
+      if (!this.name().trim()) return false;
+      if (!this.role()) return false;
+      if (!isValidEmail(this.email())) return false;
+      if (!/^\d{4}$/.test(pin)) return false;
+      if (pin !== pin2) return false;
+      return true;
+    }
+
+    // Edit mode
+    if (!this.name().trim()) return false;
+    if (!this.role()) return false;
+    if (!isValidEmail(this.email())) return false;
+    if (pin) {
+      // A PIN was entered — must be valid and match confirm.
+      if (!/^\d{4}$/.test(pin)) return false;
+      if (pin !== pin2) return false;
+    }
+    return true;
+  });
+
   constructor() {
     effect(() => {
       if (!this.visible()) return;
@@ -122,9 +157,19 @@ export class UserFormModalComponent {
     this.error.set(null);
     const mode = this.mode();
 
-    if (this.showFullForm() && !this.name().trim()) {
-      this.error.set('Name is required.');
-      return;
+    if (this.showFullForm()) {
+      if (!this.name().trim()) {
+        this.error.set('Name is required.');
+        return;
+      }
+      if (!this.role()) {
+        this.error.set('Role is required.');
+        return;
+      }
+      if (!isValidEmail(this.email())) {
+        this.error.set('A valid email address is required.');
+        return;
+      }
     }
 
     const pinRequired = mode === 'add' || mode === 'change-pin' || this.pin().length > 0;
@@ -211,4 +256,19 @@ export class UserFormModalComponent {
       detail,
     });
   }
+}
+
+/**
+ * Basic RFC-ish check — has an `@` with at least one character on each
+ * side and at least one dot after the `@`. Not exhaustive by design;
+ * for internal team data this catches typos without blocking edge
+ * cases like `+` aliases or hyphenated domains.
+ */
+function isValidEmail(raw: string): boolean {
+  const s = (raw ?? '').trim();
+  if (!s) return false;
+  const at = s.indexOf('@');
+  if (at <= 0 || at === s.length - 1) return false;
+  const domain = s.slice(at + 1);
+  return domain.includes('.') && !domain.startsWith('.');
 }

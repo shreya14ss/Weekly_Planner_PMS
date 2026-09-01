@@ -94,6 +94,16 @@ export class AddProjectModalComponent {
   readonly isEdit = computed(() => this.editing() !== null);
   readonly title = computed(() => (this.isEdit() ? 'Edit Project' : 'Add New Project'));
 
+  /** All five required fields must be filled before the button is enabled. */
+  readonly canSave = computed(
+    () =>
+      this.client().trim().length > 0 &&
+      this.name().trim().length > 0 &&
+      this.engineers().filter((e) => e.trim()).length > 0 &&
+      this.tls().filter((t) => t.trim()).length > 0 &&
+      !!this.status(),
+  );
+
   constructor() {
     // Sync form fields whenever the dialog opens or the editing target
     // changes. Reset to blanks on close so re-opens don't leak state.
