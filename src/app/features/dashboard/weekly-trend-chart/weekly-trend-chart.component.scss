@@ -1,0 +1,124 @@
+:host {
+  display: block;
+}
+
+.hdr {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.sub {
+  margin: 3px 0 0;
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.l {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.dot {
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.dot-ok {
+  background: #059669;
+}
+.dot-risk {
+  background: #d97706;
+}
+.dot-late {
+  background: #dc2626;
+}
+.dot-hold {
+  background: #7c3aed;
+}
+
+.loading,
+.empty {
+  padding: 28px;
+  text-align: center;
+  color: #64748b;
+  font-size: 12.5px;
+}
+
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 44px;
+}
+
+.col-num {
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  height: 12px;
+  margin-bottom: 2px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column-reverse; /* first segment sits at the bottom */
+  width: 60%;
+  min-width: 20px;
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+}
+
+.seg {
+  width: 100%;
+  transition: height 0.3s ease;
+}
+
+.col-lbl {
+  margin-top: 6px;
+  font-size: 10px;
+  color: #64748b;
+  text-align: center;
+  white-space: nowrap;
+
+  &.current {
+    color: #1a72cc;
+    font-weight: 700;
+  }
+}
+
+.cur-mark {
+  color: #e8721a;
+  margin-left: 2px;
+}

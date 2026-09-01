@@ -1,0 +1,99 @@
+:host {
+  display: block;
+}
+
+.empty {
+  padding: 30px 12px;
+  text-align: center;
+  border: 1.5px dashed #e2e8f0;
+  border-radius: 10px;
+  background: #fafcfe;
+}
+
+.num-col {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.eng-name {
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 22px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0 6px;
+}
+
+.badge-gray {
+  background: #f1f5f9;
+  color: #374151;
+}
+.badge-blue {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.badge-green {
+  background: #d1fae5;
+  color: #065f46;
+}
+.badge-amber {
+  background: #fef3c7;
+  color: #92400e;
+}
+.badge-red {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.badge-violet {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.prog-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prog-track {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  overflow: hidden;
+  display: flex;
+  min-width: 100px;
+}
+
+.prog-seg {
+  height: 100%;
+}
+
+.seg-active {
+  background: #2563eb;
+}
+.seg-done {
+  background: #059669;
+}
+.seg-hold {
+  background: #d97706;
+}
+
+.prog-pct {
+  font-size: 11px;
+  color: #64748b;
+  white-space: nowrap;
+  min-width: 40px;
+  text-align: right;
+}

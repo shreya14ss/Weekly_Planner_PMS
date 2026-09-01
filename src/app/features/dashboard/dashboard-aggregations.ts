@@ -1,5 +1,6 @@
 import { computed, inject } from '@angular/core';
 
+import { UserRepository } from '@core/pouchdb/user.repository';
 import { WeekStateService } from '@core/services/week-state.service';
 import { ProjectDoc } from '@models/project';
 import { ProjectWeekEntry } from '@models/week';
@@ -36,6 +37,41 @@ export interface StatusSegment {
   color: string;
 }
 
+export interface EngineerRow {
+  name: string;
+  total: number;
+  active: number;
+  done: number;
+  hold: number;
+  delayed: number;
+  notFilled: number;
+  progressPct: number;
+}
+
+export interface ProjectTaskBreakdownRow {
+  projectId: string;
+  client: string;
+  displayName: string;
+  total: number;
+  pending: number;
+  inProgress: number;
+  delayed: number;
+  hold: number;
+  done: number;
+}
+
+export interface DelayedTaskRow {
+  projectId: string;
+  client: string;
+  projectName: string;
+  engineers: string[];
+  taskName: string;
+  taskId: string;
+  assigneeNames: string[];
+  dueDate?: string;
+  daysOverdue?: number;
+}
+
 /**
  * Signal-based dashboard aggregations.
  *
@@ -47,6 +83,7 @@ export interface StatusSegment {
  */
 export function useDashboardAggregations(scope: () => ProjectDoc[]) {
   const weekState = inject(WeekStateService);
+  const usersRepo = inject(UserRepository);
 
   const entriesSig = weekState.entries;
 
@@ -176,7 +213,137 @@ export function useDashboardAggregations(scope: () => ProjectDoc[]) {
     return rows;
   });
 
-  return { kpis, clientBars, statusSegments, delayedList, onHoldList };
+  const engineerRows = computed<EngineerRow[]>(() => {
+    const projects = scope();
+    const entries = entriesSig();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const map = new Map<string, EngineerRow>();
+    for (const p of projects) {
+      const entry = entries[p._id];
+      const st = effectiveStatus(p, entry);
+      const target = entry?.targetDate;
+      const past =
+        !!target && new Date(target + 'T00:00:00') < today && !isDoneStatus(st);
+      const filled = hasFilledEntry(entry);
+
+      for (const raw of p.engineers) {
+        const name = raw.trim();
+        if (!name) continue;
+        const row = map.get(name) ?? {
+          name,
+          total: 0,
+          active: 0,
+          done: 0,
+          hold: 0,
+          delayed: 0,
+          notFilled: 0,
+          progressPct: 0,
+        };
+        row.total++;
+        if (isActiveStatus(st)) row.active++;
+        if (isDoneStatus(st)) row.done++;
+        if (isOnHold(st)) row.hold++;
+        if (past) row.delayed++;
+        if (!filled) row.notFilled++;
+        map.set(name, row);
+      }
+    }
+
+    // Progress = done ÷ total. Sort by total desc so the most-loaded
+    // engineers surface first.
+    const rows = Array.from(map.values());
+    rows.forEach((r) => (r.progressPct = r.total ? Math.round((r.done / r.total) * 100) : 0));
+    rows.sort((a, b) => b.total - a.total);
+    return rows;
+  });
+
+  const projectTaskBreakdown = computed<ProjectTaskBreakdownRow[]>(() => {
+    const projects = scope();
+    const entries = entriesSig();
+    const rows: ProjectTaskBreakdownRow[] = [];
+
+    for (const p of projects) {
+      const tasks = entries[p._id]?.weekTasks ?? [];
+      if (tasks.length === 0) continue;
+      let pending = 0,
+        inProgress = 0,
+        delayed = 0,
+        hold = 0,
+        done = 0;
+      for (const t of tasks) {
+        const s = t.status;
+        if (s === 'completed') done++;
+        else if (s === 'in-progress') inProgress++;
+        else if (s === 'delay') delayed++;
+        else if (s === 'hold') hold++;
+        else pending++;
+      }
+      rows.push({
+        projectId: p._id,
+        client: p.client,
+        displayName: displayNameFor(p),
+        total: tasks.length,
+        pending,
+        inProgress,
+        delayed,
+        hold,
+        done,
+      });
+    }
+    // Delayed first, then most tasks
+    rows.sort((a, b) => b.delayed - a.delayed || b.total - a.total);
+    return rows;
+  });
+
+  const delayedTasks = computed<DelayedTaskRow[]>(() => {
+    const projects = scope();
+    const entries = entriesSig();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const rows: DelayedTaskRow[] = [];
+
+    for (const p of projects) {
+      const tasks = entries[p._id]?.weekTasks ?? [];
+      for (const t of tasks) {
+        if (t.status !== 'delay') continue;
+        let daysOverdue: number | undefined;
+        if (t.taskDueDate) {
+          const due = new Date(t.taskDueDate + 'T00:00:00');
+          const diff = Math.floor((today.getTime() - due.getTime()) / 86400000);
+          daysOverdue = diff > 0 ? diff : 0;
+        }
+        rows.push({
+          projectId: p._id,
+          client: p.client,
+          projectName: displayNameFor(p),
+          engineers: [...p.engineers],
+          taskId: t.id,
+          taskName: t.name || 'Untitled task',
+          assigneeNames: (t.assignedTo ?? [])
+            .map((uid) => usersRepo.get(uid)?.name)
+            .filter((n): n is string => !!n),
+          dueDate: t.taskDueDate,
+          daysOverdue,
+        });
+      }
+    }
+    // Most-overdue first
+    rows.sort((a, b) => (b.daysOverdue ?? 0) - (a.daysOverdue ?? 0));
+    return rows;
+  });
+
+  return {
+    kpis,
+    clientBars,
+    statusSegments,
+    delayedList,
+    onHoldList,
+    engineerRows,
+    projectTaskBreakdown,
+    delayedTasks,
+  };
 }
 
 function hasFilledEntry(e: ProjectWeekEntry | undefined): boolean {

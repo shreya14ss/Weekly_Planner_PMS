@@ -103,3 +103,35 @@
     />
   </p-card>
 </div>
+
+<!-- Project task breakdown -->
+<p-card class="block mt-4">
+  <ng-template pTemplate="header">
+    <div class="card-title">Project Task Status Breakdown</div>
+  </ng-template>
+  <app-project-task-breakdown
+    [rows]="projectTaskBreakdown()"
+    (open)="openProject($event)"
+  />
+</p-card>
+
+<!-- Engineer performance -->
+<p-card class="block mt-4">
+  <ng-template pTemplate="header">
+    <div class="card-title">Engineer Performance</div>
+  </ng-template>
+  <app-engineer-performance [rows]="engineerRows()" />
+</p-card>
+
+<!-- Delayed tasks filter -->
+<p-card class="block mt-4">
+  <app-delayed-tasks-filter
+    [rows]="delayedTasks()"
+    (open)="openProject($event)"
+  />
+</p-card>
+
+<!-- Weekly trend chart -->
+<p-card class="block mt-4">
+  <app-weekly-trend-chart />
+</p-card>

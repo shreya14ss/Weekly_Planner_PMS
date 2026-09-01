@@ -13,6 +13,10 @@ import { KpiCardsComponent } from '@features/dashboard/kpi-cards/kpi-cards.compo
 import { StatusDonutComponent } from '@features/dashboard/status-donut/status-donut.component';
 import { ClientBarsComponent } from '@features/dashboard/client-bars/client-bars.component';
 import { AttentionListComponent } from '@features/dashboard/attention-list/attention-list.component';
+import { EngineerPerformanceComponent } from '@features/dashboard/engineer-performance/engineer-performance.component';
+import { ProjectTaskBreakdownComponent } from '@features/dashboard/project-task-breakdown/project-task-breakdown.component';
+import { DelayedTasksFilterComponent } from '@features/dashboard/delayed-tasks-filter/delayed-tasks-filter.component';
+import { WeeklyTrendChartComponent } from '@features/dashboard/weekly-trend-chart/weekly-trend-chart.component';
 
 interface StatusOption {
   label: string;
@@ -32,6 +36,10 @@ interface StatusOption {
     StatusDonutComponent,
     ClientBarsComponent,
     AttentionListComponent,
+    EngineerPerformanceComponent,
+    ProjectTaskBreakdownComponent,
+    DelayedTasksFilterComponent,
+    WeeklyTrendChartComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard-page.component.html',
@@ -48,6 +56,9 @@ export class DashboardPageComponent {
   protected readonly statusSegments = this.agg.statusSegments;
   protected readonly delayedList = this.agg.delayedList;
   protected readonly onHoldList = this.agg.onHoldList;
+  protected readonly engineerRows = this.agg.engineerRows;
+  protected readonly projectTaskBreakdown = this.agg.projectTaskBreakdown;
+  protected readonly delayedTasks = this.agg.delayedTasks;
 
   protected readonly clientOptions = computed(() => [
     { label: 'All Clients', value: 'all' },

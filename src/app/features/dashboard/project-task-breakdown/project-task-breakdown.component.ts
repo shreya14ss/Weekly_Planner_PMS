@@ -1,0 +1,97 @@
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+
+import { ProjectTaskBreakdownRow } from '@features/dashboard/dashboard-aggregations';
+
+/**
+ * Per-project task-status breakdown. Empty projects (no tasks yet)
+ * are excluded upstream so this table stays actionable.
+ */
+@Component({
+  selector: 'app-project-task-breakdown',
+  standalone: true,
+  imports: [TableModule, ButtonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    @if (rows().length === 0) {
+      <div class="empty">
+        <i class="pi pi-list-check text-3xl text-slate-300 block mb-2"></i>
+        <div class="text-sm text-slate-500">
+          No projects with weekly tasks yet. Once tasks are added, task-level
+          counts will appear here.
+        </div>
+      </div>
+    } @else {
+      <p-table
+        [value]="rows()"
+        [scrollable]="true"
+        scrollHeight="420px"
+        stripedRows
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Project</th>
+            <th class="num">Total</th>
+            <th class="num">Pending</th>
+            <th class="num">In Progress</th>
+            <th class="num">Delayed</th>
+            <th class="num">On Hold</th>
+            <th class="num">Done</th>
+            <th></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-r>
+          <tr>
+            <td>
+              <span class="client-tag">{{ r.client }}</span>
+              <span class="proj-name" [title]="r.displayName">{{ r.displayName }}</span>
+            </td>
+            <td class="num"><b>{{ r.total }}</b></td>
+            <td class="num">
+              @if (r.pending > 0) {
+                <span class="badge b-gray">{{ r.pending }}</span>
+              } @else { <span class="dash">—</span> }
+            </td>
+            <td class="num">
+              @if (r.inProgress > 0) {
+                <span class="badge b-blue">{{ r.inProgress }}</span>
+              } @else { <span class="dash">—</span> }
+            </td>
+            <td class="num">
+              @if (r.delayed > 0) {
+                <span class="badge b-red">{{ r.delayed }}</span>
+              } @else { <span class="dash">—</span> }
+            </td>
+            <td class="num">
+              @if (r.hold > 0) {
+                <span class="badge b-amber">{{ r.hold }}</span>
+              } @else { <span class="dash">—</span> }
+            </td>
+            <td class="num">
+              @if (r.done > 0) {
+                <span class="badge b-green">{{ r.done }}</span>
+              } @else { <span class="dash">—</span> }
+            </td>
+            <td>
+              <p-button
+                icon="pi pi-external-link"
+                [rounded]="true"
+                [text]="true"
+                size="small"
+                severity="secondary"
+                (onClick)="open.emit(r.projectId)"
+              />
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  `,
+  styleUrl: './project-task-breakdown.component.scss',
+})
+export class ProjectTaskBreakdownComponent {
+  readonly rows = input.required<ProjectTaskBreakdownRow[]>();
+  readonly open = output<string>();
+}
