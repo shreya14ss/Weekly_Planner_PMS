@@ -27,7 +27,7 @@ const INNER = 38;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="wrap">
-      <div class="ring" role="img" aria-label="Status distribution donut">
+      <div class="donut-ring" role="img" aria-label="Status distribution donut">
         <svg viewBox="0 0 160 160" width="160" height="160">
           @for (arc of arcs(); track arc.status) {
             <path [attr.d]="arc.path" [attr.fill]="arc.color" />
