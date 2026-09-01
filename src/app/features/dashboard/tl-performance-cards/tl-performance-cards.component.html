@@ -1,0 +1,83 @@
+@if (rows().length === 0) {
+  <div class="empty">
+    <i class="pi pi-users text-3xl text-slate-300 block mb-2"></i>
+    <div class="text-sm text-slate-500">
+      No task data yet. Once weekly tasks are added, TL/engineer performance will appear here.
+    </div>
+  </div>
+} @else {
+  <div class="grid">
+    @for (row of rows(); track row.name) {
+      <article class="card">
+        <header class="hdr">
+          <div class="av" [style.background]="avatarBg(row)">{{ row.initials }}</div>
+          <div>
+            <div class="name">{{ row.name }}</div>
+            <div class="sub">
+              {{ roleLabel(row.role) }}
+              @if (row.projectCount) {
+                · {{ row.projectCount }} project{{ row.projectCount === 1 ? '' : 's' }}
+              }
+              @if (row.taskCount) {
+                · {{ row.taskCount }} task{{ row.taskCount === 1 ? '' : 's' }}
+              }
+            </div>
+          </div>
+          <div class="health" [style.color]="healthColor(row)">{{ healthIcon(row) }}</div>
+        </header>
+
+        <div class="bar-wrap">
+          <div class="bar-lbl">
+            <span>Task completion</span>
+            <span [style.color]="row.completionPct >= 70 ? '#059669' : row.completionPct >= 40 ? '#d97706' : '#dc2626'">
+              {{ row.completionPct }}%
+            </span>
+          </div>
+          <div class="bar">
+            @if (row.done) {
+              <span class="seg seg-done" [style.width.%]="pct(row.done, row.taskCount)"></span>
+            }
+            @if (row.inProgress) {
+              <span class="seg seg-ip" [style.width.%]="pct(row.inProgress, row.taskCount)"></span>
+            }
+            @if (row.hold) {
+              <span class="seg seg-hold" [style.width.%]="pct(row.hold, row.taskCount)"></span>
+            }
+            @if (row.delayed) {
+              <span class="seg seg-del" [style.width.%]="pct(row.delayed, row.taskCount)"></span>
+            }
+            @if (row.notStarted) {
+              <span class="seg seg-ns" [style.width.%]="pct(row.notStarted, row.taskCount)"></span>
+            }
+          </div>
+        </div>
+
+        <div class="stats">
+          @if (row.done > 0) {
+            <span class="stat s-done">✓ {{ row.done }} Done</span>
+          }
+          @if (row.inProgress > 0) {
+            <span class="stat s-ip">◐ {{ row.inProgress }} Active</span>
+          }
+          @if (row.hold > 0) {
+            <span class="stat s-hold">▪ {{ row.hold }} Hold</span>
+          }
+          @if (row.delayed > 0) {
+            <span class="stat s-del">⚠ {{ row.delayed }} Delay</span>
+          }
+          @if (row.notStarted > 0) {
+            <span class="stat s-ns">○ {{ row.notStarted }} Not Started</span>
+          }
+        </div>
+
+        <div class="delay-line">
+          Delay rate:
+          <span class="delay-pct" [style.color]="row.delayRate >= 20 ? '#dc2626' : '#059669'">
+            {{ row.delayRate }}%
+          </span>
+          <span class="delay-note">{{ delayAssessment(row) }}</span>
+        </div>
+      </article>
+    }
+  </div>
+}

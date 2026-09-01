@@ -1,0 +1,220 @@
+:host {
+  display: block;
+}
+
+.empty {
+  padding: 30px 12px;
+  text-align: center;
+}
+
+.click-row {
+  cursor: pointer;
+
+  &:hover td {
+    background: #eff6ff !important;
+  }
+}
+
+.client-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: #dbeafe;
+  color: #1e40af;
+  margin-right: 8px;
+}
+
+.proj-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.empty-team {
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 11.5px;
+}
+
+.team {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 2px 8px 2px 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip-av {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 800;
+  flex-shrink: 0;
+  background: #6b7280;
+}
+
+.chip.av-pm .chip-av {
+  background: #d97706;
+}
+.chip.av-tl .chip-av {
+  background: #2563eb;
+}
+.chip.av-user .chip-av {
+  background: #6b7280;
+}
+
+.chip-name {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip-role {
+  font-size: 9px;
+  opacity: 0.6;
+}
+
+.no-tasks {
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 11.5px;
+}
+
+.tasks-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.tasks-counts {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tc {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.tc-done {
+  background: #d1fae5;
+  color: #065f46;
+}
+.tc-ip {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.tc-hold {
+  background: #fef3c7;
+  color: #92400e;
+}
+.tc-del {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.tc-ns {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.tc-pct {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.bar {
+  height: 7px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  overflow: hidden;
+  display: flex;
+}
+
+.seg {
+  height: 100%;
+}
+
+.seg-done {
+  background: #059669;
+}
+.seg-ip {
+  background: #2563eb;
+}
+.seg-hold {
+  background: #d97706;
+}
+.seg-del {
+  background: #dc2626;
+}
+.seg-ns {
+  background: #e5e7eb;
+}
+
+.tk-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.tk-ok {
+  background: #d1fae5;
+  color: #065f46;
+}
+.tk-risk {
+  background: #fef3c7;
+  color: #92400e;
+}
+.tk-late {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.tk-hold {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+.tk-done {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.tk-ns {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.click-hint {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1a72cc;
+  white-space: nowrap;
+}

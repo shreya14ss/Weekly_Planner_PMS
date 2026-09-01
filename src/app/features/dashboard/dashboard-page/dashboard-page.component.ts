@@ -17,6 +17,9 @@ import { EngineerPerformanceComponent } from '@features/dashboard/engineer-perfo
 import { ProjectTaskBreakdownComponent } from '@features/dashboard/project-task-breakdown/project-task-breakdown.component';
 import { DelayedTasksFilterComponent } from '@features/dashboard/delayed-tasks-filter/delayed-tasks-filter.component';
 import { WeeklyTrendChartComponent } from '@features/dashboard/weekly-trend-chart/weekly-trend-chart.component';
+import { ProjectFollowUpComponent } from '@features/dashboard/project-follow-up/project-follow-up.component';
+import { WeeklyScheduleTrackerComponent } from '@features/dashboard/weekly-schedule-tracker/weekly-schedule-tracker.component';
+import { TlPerformanceCardsComponent } from '@features/dashboard/tl-performance-cards/tl-performance-cards.component';
 
 interface StatusOption {
   label: string;
@@ -40,6 +43,9 @@ interface StatusOption {
     ProjectTaskBreakdownComponent,
     DelayedTasksFilterComponent,
     WeeklyTrendChartComponent,
+    ProjectFollowUpComponent,
+    WeeklyScheduleTrackerComponent,
+    TlPerformanceCardsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard-page.component.html',
@@ -59,6 +65,10 @@ export class DashboardPageComponent {
   protected readonly engineerRows = this.agg.engineerRows;
   protected readonly projectTaskBreakdown = this.agg.projectTaskBreakdown;
   protected readonly delayedTasks = this.agg.delayedTasks;
+  protected readonly followUpRows = this.agg.followUpRows;
+  protected readonly trackerRows = this.agg.trackerRows;
+  protected readonly healthSummary = this.agg.healthSummary;
+  protected readonly tlPerformance = this.agg.tlPerformance;
 
   protected readonly clientOptions = computed(() => [
     { label: 'All Clients', value: 'all' },

@@ -61,12 +61,23 @@
   </div>
 </section>
 
-<!-- KPI row -->
+<!-- 1. KPI row -->
 <section class="mt-4">
   <app-kpi-cards [kpis]="kpis()" />
 </section>
 
-<!-- Chart row: donut + client bars -->
+<!-- 2. Project Task Status Breakdown -->
+<p-card class="block mt-4">
+  <ng-template pTemplate="header">
+    <div class="card-title">Project Task Status Breakdown</div>
+  </ng-template>
+  <app-project-task-breakdown
+    [rows]="projectTaskBreakdown()"
+    (open)="openProject($event)"
+  />
+</p-card>
+
+<!-- 3. Status Distribution + Projects by Client -->
 <div class="chart-row mt-4">
   <p-card>
     <ng-template pTemplate="header">
@@ -83,7 +94,47 @@
   </p-card>
 </div>
 
-<!-- Attention row: delayed + on hold -->
+<!-- 4. Project Task Status — Who Needs Follow-Up? -->
+<p-card class="block mt-4">
+  <ng-template pTemplate="header">
+    <div class="card-title-wrap">
+      <div class="card-title">📋 Project Task Status — Who Needs Follow-Up?</div>
+      <div class="card-sub">
+        One row per project · All assigned members shown · Click for details ›
+      </div>
+    </div>
+  </ng-template>
+  <app-project-follow-up
+    [rows]="followUpRows()"
+    (open)="openProject($event)"
+  />
+</p-card>
+
+<!-- 5. Weekly Schedule Tracker -->
+<p-card class="block mt-4">
+  <ng-template pTemplate="header">
+    <div class="card-title-wrap">
+      <div class="card-title">📅 Weekly Schedule Tracker</div>
+      <div class="card-sub">
+        Health summary plus per-project weekly target and task status
+      </div>
+    </div>
+  </ng-template>
+  <app-weekly-schedule-tracker
+    [rows]="trackerRows()"
+    [summary]="healthSummary()"
+  />
+</p-card>
+
+<!-- 6. Engineer performance -->
+<p-card class="block mt-4">
+  <ng-template pTemplate="header">
+    <div class="card-title">Engineer Performance</div>
+  </ng-template>
+  <app-engineer-performance [rows]="engineerRows()" />
+</p-card>
+
+<!-- 7. Attention row: delayed + on hold -->
 <div class="chart-row mt-4">
   <p-card>
     <app-attention-list
@@ -104,26 +155,12 @@
   </p-card>
 </div>
 
-<!-- Project task breakdown -->
+<!-- 8. Weekly Tracker Trend -->
 <p-card class="block mt-4">
-  <ng-template pTemplate="header">
-    <div class="card-title">Project Task Status Breakdown</div>
-  </ng-template>
-  <app-project-task-breakdown
-    [rows]="projectTaskBreakdown()"
-    (open)="openProject($event)"
-  />
+  <app-weekly-trend-chart />
 </p-card>
 
-<!-- Engineer performance -->
-<p-card class="block mt-4">
-  <ng-template pTemplate="header">
-    <div class="card-title">Engineer Performance</div>
-  </ng-template>
-  <app-engineer-performance [rows]="engineerRows()" />
-</p-card>
-
-<!-- Delayed tasks filter -->
+<!-- 9. Delayed Tasks — Project-wise Breakdown -->
 <p-card class="block mt-4">
   <app-delayed-tasks-filter
     [rows]="delayedTasks()"
@@ -131,7 +168,13 @@
   />
 </p-card>
 
-<!-- Weekly trend chart -->
+<!-- 10. TL / Engineer Performance & Delay Trend -->
 <p-card class="block mt-4">
-  <app-weekly-trend-chart />
+  <ng-template pTemplate="header">
+    <div class="card-title-wrap">
+      <div class="card-title">📈 TL / Engineer Performance &amp; Delay Trend</div>
+      <div class="card-sub">Identify who has the most delayed or stuck tasks</div>
+    </div>
+  </ng-template>
+  <app-tl-performance-cards [rows]="tlPerformance()" />
 </p-card>

@@ -1,0 +1,98 @@
+<!-- Health summary pills -->
+<div class="pills">
+  @for (pill of pills; track pill.key) {
+    <div class="pill" [class]="pill.cls">
+      <span class="dot" [style.background]="pill.dot"></span>
+      <div>
+        <div class="num">{{ summary()[pill.key] }}</div>
+        <div class="lbl">
+          {{ pill.label }}<br />
+          <span class="sub">{{ pill.sub }}</span>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+@if (rows().length === 0) {
+  <div class="empty">
+    <i class="pi pi-inbox text-3xl text-slate-300 block mb-2"></i>
+    <div class="text-sm text-slate-500">No active projects to track this week.</div>
+  </div>
+} @else {
+  <p-table [value]="rows()" [scrollable]="true" scrollHeight="480px" stripedRows>
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="min-width:180px">Project</th>
+        <th>Client</th>
+        <th style="min-width:180px">Weekly Target</th>
+        <th style="min-width:220px">Task Status &amp; Progress</th>
+        <th>Track Status</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-r>
+      <tr>
+        <td>
+          <div class="proj-name">{{ r.displayName }}</div>
+          <div class="eng-line">{{ r.engineers }}</div>
+        </td>
+        <td>
+          <span class="client-tag">{{ r.client }}</span>
+        </td>
+        <td>
+          @if (r.weeklyTarget) {
+            <div class="target" [title]="r.weeklyTarget">{{ r.weeklyTarget }}</div>
+          } @else {
+            <div class="target-empty">No target set</div>
+          }
+        </td>
+        <td>
+          @if (r.taskCounts.total === 0) {
+            <span class="no-tasks">No tasks added</span>
+          } @else {
+            <div class="tasks-wrap">
+              <div class="counts">
+                @if (r.taskCounts.done > 0) {
+                  <span class="c c-done">✓ {{ r.taskCounts.done }}</span>
+                }
+                @if (r.taskCounts.inProgress > 0) {
+                  <span class="c c-ip">◐ {{ r.taskCounts.inProgress }}</span>
+                }
+                @if (r.taskCounts.hold > 0) {
+                  <span class="c c-hold">▪ {{ r.taskCounts.hold }}</span>
+                }
+                @if (r.taskCounts.delayed > 0) {
+                  <span class="c c-del">⚠ {{ r.taskCounts.delayed }}</span>
+                }
+                @if (r.taskCounts.notStarted > 0) {
+                  <span class="c c-ns">○ {{ r.taskCounts.notStarted }}</span>
+                }
+                <span class="pct">{{ r.taskCounts.progressPct }}%</span>
+              </div>
+              <div class="bar">
+                @if (r.taskCounts.done > 0) {
+                  <span class="seg seg-done" [style.width.%]="segPct(r.taskCounts.done, r.taskCounts.total)"></span>
+                }
+                @if (r.taskCounts.inProgress > 0) {
+                  <span class="seg seg-ip" [style.width.%]="segPct(r.taskCounts.inProgress, r.taskCounts.total)"></span>
+                }
+                @if (r.taskCounts.hold > 0) {
+                  <span class="seg seg-hold" [style.width.%]="segPct(r.taskCounts.hold, r.taskCounts.total)"></span>
+                }
+                @if (r.taskCounts.delayed > 0) {
+                  <span class="seg seg-del" [style.width.%]="segPct(r.taskCounts.delayed, r.taskCounts.total)"></span>
+                }
+                @if (r.taskCounts.notStarted > 0) {
+                  <span class="seg seg-ns" [style.width.%]="segPct(r.taskCounts.notStarted, r.taskCounts.total)"></span>
+                }
+              </div>
+            </div>
+          }
+        </td>
+        <td>
+          <span class="tk-badge" [class]="trackCls(r.trackStatus.key)">{{ r.trackStatus.label }}</span>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+}

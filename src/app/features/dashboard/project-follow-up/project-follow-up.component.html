@@ -1,0 +1,92 @@
+@if (rows().length === 0) {
+  <div class="empty">
+    <i class="pi pi-check-circle text-emerald-500 text-3xl block mb-2"></i>
+    <div class="text-sm text-slate-500">No projects in scope.</div>
+  </div>
+} @else {
+  <p-table [value]="rows()" [scrollable]="true" scrollHeight="500px" stripedRows>
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="min-width:200px">Project</th>
+        <th style="min-width:220px">Assigned Team</th>
+        <th style="min-width:240px">Weekly Tasks</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-r>
+      <tr class="click-row" (click)="open.emit(r.projectId)">
+        <td>
+          <span class="client-tag">{{ r.client }}</span>
+          <span class="proj-name">{{ r.displayName }}</span>
+        </td>
+        <td>
+          @if (r.team.length === 0) {
+            <span class="empty-team">Unassigned</span>
+          } @else {
+            <div class="team">
+              @for (m of r.team; track m.name) {
+                <span class="chip" [class]="roleCls(m.role)">
+                  <span class="chip-av">{{ m.initials }}</span>
+                  <span class="chip-name">{{ m.name }}</span>
+                  @if (roleLabel(m.role); as lbl) {
+                    <span class="chip-role">{{ lbl }}</span>
+                  }
+                </span>
+              }
+            </div>
+          }
+        </td>
+        <td>
+          @if (r.taskCounts.total === 0) {
+            <span class="no-tasks">No tasks added</span>
+          } @else {
+            <div class="tasks-wrap">
+              <div class="tasks-counts">
+                @if (r.taskCounts.done > 0) {
+                  <span class="tc tc-done">✓ {{ r.taskCounts.done }}</span>
+                }
+                @if (r.taskCounts.inProgress > 0) {
+                  <span class="tc tc-ip">◐ {{ r.taskCounts.inProgress }}</span>
+                }
+                @if (r.taskCounts.hold > 0) {
+                  <span class="tc tc-hold">▪ {{ r.taskCounts.hold }}</span>
+                }
+                @if (r.taskCounts.delayed > 0) {
+                  <span class="tc tc-del">⚠ {{ r.taskCounts.delayed }}</span>
+                }
+                @if (r.taskCounts.notStarted > 0) {
+                  <span class="tc tc-ns">○ {{ r.taskCounts.notStarted }}</span>
+                }
+                <span class="tc-pct">{{ r.taskCounts.progressPct }}%</span>
+              </div>
+              <div class="bar">
+                @if (r.taskCounts.done > 0) {
+                  <span class="seg seg-done" [style.width.%]="segPct(r.taskCounts.done, r.taskCounts.total)"></span>
+                }
+                @if (r.taskCounts.inProgress > 0) {
+                  <span class="seg seg-ip" [style.width.%]="segPct(r.taskCounts.inProgress, r.taskCounts.total)"></span>
+                }
+                @if (r.taskCounts.hold > 0) {
+                  <span class="seg seg-hold" [style.width.%]="segPct(r.taskCounts.hold, r.taskCounts.total)"></span>
+                }
+                @if (r.taskCounts.delayed > 0) {
+                  <span class="seg seg-del" [style.width.%]="segPct(r.taskCounts.delayed, r.taskCounts.total)"></span>
+                }
+                @if (r.taskCounts.notStarted > 0) {
+                  <span class="seg seg-ns" [style.width.%]="segPct(r.taskCounts.notStarted, r.taskCounts.total)"></span>
+                }
+              </div>
+            </div>
+          }
+        </td>
+        <td>
+          <span class="tk-badge" [class]="trackCls(r.trackStatus.key)">{{ r.trackStatus.label }}</span>
+        </td>
+        <td>
+          <span class="click-hint">Details ›</span>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+}

@@ -1,0 +1,173 @@
+:host {
+  display: block;
+}
+
+.empty {
+  padding: 30px 12px;
+  text-align: center;
+  border: 1.5px dashed #e2e8f0;
+  border-radius: 10px;
+  background: #fafcfe;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 3px 14px rgba(15, 32, 64, 0.08);
+  }
+}
+
+.hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.av {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.name {
+  font-weight: 700;
+  font-size: 13px;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.sub {
+  font-size: 10.5px;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.health {
+  margin-left: auto;
+  font-size: 18px;
+}
+
+.bar-wrap {
+  margin-bottom: 8px;
+}
+
+.bar-lbl {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 4px;
+
+  span:last-child {
+    font-weight: 700;
+  }
+}
+
+.bar {
+  height: 8px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  overflow: hidden;
+  display: flex;
+}
+
+.seg {
+  height: 100%;
+}
+
+.seg-done {
+  background: #059669;
+}
+.seg-ip {
+  background: #2563eb;
+}
+.seg-hold {
+  background: #d97706;
+}
+.seg-del {
+  background: #dc2626;
+}
+.seg-ns {
+  background: #e5e7eb;
+}
+
+.stats {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.stat {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.s-done {
+  background: #d1fae5;
+  color: #065f46;
+}
+.s-ip {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.s-hold {
+  background: #fef3c7;
+  color: #92400e;
+}
+.s-del {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.s-ns {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.delay-line {
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 11px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.delay-pct {
+  font-weight: 700;
+}
+
+.delay-note {
+  font-size: 10.5px;
+  color: #64748b;
+}
