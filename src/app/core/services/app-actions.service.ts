@@ -31,15 +31,19 @@ export class AppActionsService {
 
   readonly addProjectOpen = signal(false);
   readonly editingProject = signal<ProjectDoc | null>(null);
+  /** Optional client pre-fill for the Add Project modal. Cleared after use. */
+  readonly prefillClient = signal<string>('');
   readonly recoveryOpen = signal(false);
 
-  openAddProject(): void {
+  openAddProject(clientPrefill = ''): void {
     this.editingProject.set(null);
+    this.prefillClient.set(clientPrefill);
     this.addProjectOpen.set(true);
   }
 
   openEditProject(project: ProjectDoc): void {
     this.editingProject.set(project);
+    this.prefillClient.set('');
     this.addProjectOpen.set(true);
   }
 

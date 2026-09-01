@@ -84,6 +84,12 @@ export class ProjectsPageComponent {
     this.actions.openEditProject(p);
   }
 
+  addProjectFor(client: string, event: MouseEvent): void {
+    // Stop the click from also toggling the group's collapse state.
+    event.stopPropagation();
+    this.actions.openAddProject(client);
+  }
+
   toggleClient(client: string): void {
     const set = new Set(this.collapsedClients());
     if (set.has(client)) set.delete(client);

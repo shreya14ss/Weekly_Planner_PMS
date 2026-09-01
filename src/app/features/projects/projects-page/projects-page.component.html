@@ -77,18 +77,33 @@
   <div class="flex flex-col gap-4">
     @for (group of groups(); track group.client) {
       <section class="client-group">
-        <button
-          type="button"
-          class="client-header"
-          [attr.aria-expanded]="!isCollapsed(group.client)"
-          (click)="toggleClient(group.client)"
-        >
-          <i class="pi" [class.pi-chevron-down]="!isCollapsed(group.client)" [class.pi-chevron-right]="isCollapsed(group.client)"></i>
-          <span class="client-name">{{ group.client }}</span>
-          <span class="client-count">
-            {{ group.projects.length }} project{{ group.projects.length === 1 ? '' : 's' }}
-          </span>
-        </button>
+        <header class="client-header">
+          <button
+            type="button"
+            class="client-toggle"
+            [attr.aria-expanded]="!isCollapsed(group.client)"
+            (click)="toggleClient(group.client)"
+          >
+            <i class="pi" [class.pi-chevron-down]="!isCollapsed(group.client)" [class.pi-chevron-right]="isCollapsed(group.client)"></i>
+            <span class="client-name">{{ group.client }}</span>
+            <span class="client-count">
+              {{ group.projects.length }} project{{ group.projects.length === 1 ? '' : 's' }}
+            </span>
+          </button>
+
+          @if (auth.isPM() || auth.isTL()) {
+            <button
+              type="button"
+              class="client-add"
+              pTooltip="Add another project for this client"
+              tooltipPosition="left"
+              (click)="addProjectFor(group.client, $event)"
+            >
+              <i class="pi pi-plus"></i>
+              Add Project
+            </button>
+          }
+        </header>
 
         @if (!isCollapsed(group.client)) {
           <div class="client-body">

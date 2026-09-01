@@ -58,6 +58,8 @@ export class AddProjectModalComponent {
 
   readonly visible = model.required<boolean>();
   readonly editing = input<ProjectDoc | null>(null);
+  /** Optional client pre-fill for new-project mode. Ignored when editing. */
+  readonly prefillClient = input<string>('');
   readonly saved = output<ProjectDoc>();
 
   readonly client = signal('');
@@ -98,7 +100,9 @@ export class AddProjectModalComponent {
     effect(() => {
       if (!this.visible()) return;
       const p = this.editing();
-      this.client.set(p?.client ?? '');
+      // In add mode, honour prefillClient (e.g. "+ Add" on a client
+      // group header). In edit mode, always use the existing client.
+      this.client.set(p?.client ?? this.prefillClient() ?? '');
       this.name.set(p?.name === '—' ? '' : (p?.name ?? ''));
       this.engineers.set(p?.engineers ? [...p.engineers] : []);
       this.tls.set(p?.tls ? [...p.tls] : []);
