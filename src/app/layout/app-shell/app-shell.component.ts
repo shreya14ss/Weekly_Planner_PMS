@@ -75,6 +75,15 @@ export class AppShellComponent {
     return r === 'pm' ? 'PM' : r === 'tl' ? 'TL' : 'Engineer';
   });
 
+  /**
+   * Hide the role tag when it would be a visual duplicate of the
+   * avatar initials — e.g. a user literally named "Project Manager"
+   * has initials `PM` AND role tag `PM`.
+   */
+  readonly showRoleTag = computed(
+    () => this.initials().toLowerCase() !== this.roleLabel().toLowerCase(),
+  );
+
   readonly syncSeverity = computed<'success' | 'info' | 'warn' | 'danger'>(() => {
     const s = this.syncStatus();
     if (s === 'active') return 'success';

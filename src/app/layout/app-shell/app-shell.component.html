@@ -52,11 +52,13 @@
             }"
           />
           <span class="text-sm font-semibold max-w-[140px] truncate">{{ user()?.name }}</span>
-          <p-tag
-            [value]="roleLabel()"
-            [severity]="isPM() ? 'warn' : isTL() ? 'info' : 'secondary'"
-            [rounded]="true"
-          />
+          @if (showRoleTag()) {
+            <p-tag
+              [value]="roleLabel()"
+              [severity]="isPM() ? 'warn' : isTL() ? 'info' : 'secondary'"
+              [rounded]="true"
+            />
+          }
         </div>
 
         <app-theme-switcher />
