@@ -36,10 +36,10 @@
     @if (auth.isPM()) {
       <p-button
         icon="pi pi-save"
-        label="Backup (JSON)"
+        label="Save &amp; Export File"
         severity="success"
         size="small"
-        pTooltip="Download a full data snapshot as JSON — re-importable via Import Excel"
+        pTooltip="Download a portable JSON snapshot of all data — re-importable via Import Excel"
         tooltipPosition="bottom"
         (onClick)="exportBackup()"
       />
