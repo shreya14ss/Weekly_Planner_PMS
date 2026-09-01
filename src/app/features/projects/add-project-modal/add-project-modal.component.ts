@@ -131,8 +131,29 @@ export class AddProjectModalComponent {
     this.error.set(null);
 
     const client = this.client().trim();
+    const name = this.name().trim();
+    const engineers = this.engineers().filter((e) => e.trim());
+    const tls = this.tls().filter((t) => t.trim());
+    const status = this.status();
+
     if (!client) {
       this.error.set('Client is required.');
+      return;
+    }
+    if (!name) {
+      this.error.set('Project name is required.');
+      return;
+    }
+    if (engineers.length === 0) {
+      this.error.set('At least one engineer must be assigned.');
+      return;
+    }
+    if (tls.length === 0) {
+      this.error.set('At least one team leader must be selected.');
+      return;
+    }
+    if (!status) {
+      this.error.set('Current status is required.');
       return;
     }
 
@@ -140,14 +161,14 @@ export class AddProjectModalComponent {
     try {
       // Ensure every selected TL is also present in engineers (they can
       // do engineer-level work on their own project).
-      const engs = new Set([...this.engineers(), ...this.tls()]);
+      const engs = new Set([...engineers, ...tls]);
 
       const payload = {
         client,
-        name: this.name().trim() || '—',
+        name,
         engineers: Array.from(engs),
-        tls: [...this.tls()],
-        status: this.status(),
+        tls,
+        status,
         desc: this.desc().trim() || undefined,
         remarks: this.remarks().trim() || undefined,
       };
