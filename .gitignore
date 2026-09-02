@@ -41,3 +41,7 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Local environment overrides (contain CouchDB credentials — never commit)
+src/environments/environment.local.ts
+src/environments/environment.*.local.ts

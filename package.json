@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:local": "ng serve --configuration local",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -25,8 +26,10 @@
     "@angular/platform-browser": "^21.0.0",
     "@angular/router": "^21.0.0",
     "@primeng/themes": "^21.0.4",
+    "apexcharts": "^7.1.0",
     "date-fns": "^4.4.0",
     "events": "^3.3.0",
+    "ng-apexcharts": "^3.1.0",
     "pouchdb": "^9.0.0",
     "pouchdb-adapter-idb": "^9.0.0",
     "pouchdb-find": "^9.0.0",
