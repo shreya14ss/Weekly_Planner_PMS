@@ -20,6 +20,7 @@ import { MessageModule } from 'primeng/message';
 
 import { UserDoc, UserRole } from '@models/user';
 import { UserRepository } from '@core/pouchdb/user.repository';
+import { ProjectRepository } from '@core/pouchdb/project.repository';
 import { AuditRepository } from '@core/pouchdb/audit.repository';
 import { AuthService } from '@core/services/auth.service';
 
@@ -51,6 +52,7 @@ export type UserModalMode = 'add' | 'edit' | 'change-pin';
 })
 export class UserFormModalComponent {
   private readonly users = inject(UserRepository);
+  private readonly projects = inject(ProjectRepository);
   private readonly audit = inject(AuditRepository);
   private readonly auth = inject(AuthService);
 
@@ -90,7 +92,7 @@ export class UserFormModalComponent {
   );
 
   readonly showFullForm = computed(() => this.mode() !== 'change-pin');
-  readonly nameReadonly = computed(() => this.mode() !== 'add');
+  readonly originalName = computed(() => this.editing()?.name ?? '');
   readonly canChangeRole = computed(() => {
     if (this.mode() === 'add') return true;
     if (this.mode() === 'change-pin') return false;
@@ -126,10 +128,11 @@ export class UserFormModalComponent {
       return true;
     }
 
-    // Edit mode
+    // Edit mode — email is optional here (legacy users may not have one);
+    // if provided, it must still be a valid format.
     if (!this.name().trim()) return false;
     if (!this.role()) return false;
-    if (!isValidEmail(this.email())) return false;
+    if (this.email().trim() && !isValidEmail(this.email())) return false;
     if (pin) {
       // A PIN was entered — must be valid and match confirm.
       if (!/^\d{4}$/.test(pin)) return false;
@@ -187,8 +190,13 @@ export class UserFormModalComponent {
         this.error.set('Role is required.');
         return;
       }
-      if (!isValidEmail(this.email())) {
+      // Email is mandatory when creating; optional (but format-checked) when editing.
+      if (mode === 'add' && !isValidEmail(this.email())) {
         this.error.set('A valid email address is required.');
+        return;
+      }
+      if (mode === 'edit' && this.email().trim() && !isValidEmail(this.email())) {
+        this.error.set('Email address is not valid.');
         return;
       }
     }
@@ -229,6 +237,21 @@ export class UserFormModalComponent {
         if (!existing) throw new Error('No user to edit.');
         const changes: string[] = [];
         const next: UserDoc = { ...existing };
+        const newName = this.name().trim();
+        const nameChanged = mode !== 'change-pin' && newName !== existing.name;
+        if (nameChanged) {
+          const clash = this.users
+            .all()
+            .some(
+              (u) => u._id !== existing._id && u.name.trim().toLowerCase() === newName.toLowerCase(),
+            );
+          if (clash) {
+            this.error.set('Another user already has this name.');
+            return;
+          }
+          changes.push(`name → ${newName}`);
+          next.name = newName;
+        }
         if (mode !== 'change-pin' && this.canChangeRole() && this.role() !== existing.role) {
           changes.push(`role → ${this.role().toUpperCase()}`);
           next.role = this.role();
@@ -248,6 +271,9 @@ export class UserFormModalComponent {
           }
         }
         const saved = await this.users.save(next);
+        if (nameChanged) {
+          await this.cascadeRename(existing.name, newName);
+        }
         this.recordAudit(
           'User Edited',
           `${saved.name}: ${changes.join(', ') || 'no changes'}`,
@@ -264,6 +290,25 @@ export class UserFormModalComponent {
 
   cancel(): void {
     this.visible.set(false);
+  }
+
+  /**
+   * Projects reference users by name (case-insensitive) in their
+   * `engineers` and `tls` arrays. When a user is renamed, walk every
+   * project and swap any matching entry so the association stays intact.
+   */
+  private async cascadeRename(oldName: string, newName: string): Promise<void> {
+    const eq = (s: string) => s.trim().toLowerCase() === oldName.trim().toLowerCase();
+    for (const p of this.projects.all()) {
+      const engHit = p.engineers.some(eq);
+      const tlHit = p.tls.some(eq);
+      if (!engHit && !tlHit) continue;
+      await this.projects.save({
+        ...p,
+        engineers: p.engineers.map((n) => (eq(n) ? newName : n)),
+        tls: p.tls.map((n) => (eq(n) ? newName : n)),
+      });
+    }
   }
 
   private recordAudit(action: 'User Added' | 'User Edited', detail: string): void {

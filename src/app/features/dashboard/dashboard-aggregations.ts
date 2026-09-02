@@ -40,6 +40,7 @@ export interface StatusSegment {
 
 export interface EngineerRow {
   name: string;
+  initials: string;
   total: number;
   active: number;
   done: number;
@@ -47,6 +48,8 @@ export interface EngineerRow {
   delayed: number;
   notFilled: number;
   progressPct: number;
+  /** Health signal from delay + not-filled rates. */
+  health: 'good' | 'warning' | 'bad';
 }
 
 export interface ProjectTaskBreakdownRow {
@@ -309,6 +312,7 @@ export function useDashboardAggregations(scope: () => ProjectDoc[]) {
         if (!name) continue;
         const row = map.get(name) ?? {
           name,
+          initials: initialsOf(name),
           total: 0,
           active: 0,
           done: 0,
@@ -316,6 +320,7 @@ export function useDashboardAggregations(scope: () => ProjectDoc[]) {
           delayed: 0,
           notFilled: 0,
           progressPct: 0,
+          health: 'good' as EngineerRow['health'],
         };
         row.total++;
         if (isActiveStatus(st)) row.active++;
@@ -327,10 +332,17 @@ export function useDashboardAggregations(scope: () => ProjectDoc[]) {
       }
     }
 
-    // Progress = done ÷ total. Sort by total desc so the most-loaded
-    // engineers surface first.
+    // Progress = done ÷ total. Health blends delay + not-filled rate so
+    // an engineer who hasn't updated flagged as warning even if
+    // nothing has yet slipped past its target.
     const rows = Array.from(map.values());
-    rows.forEach((r) => (r.progressPct = r.total ? Math.round((r.done / r.total) * 100) : 0));
+    rows.forEach((r) => {
+      r.progressPct = r.total ? Math.round((r.done / r.total) * 100) : 0;
+      const badRate = r.total
+        ? (r.delayed * 2 + r.notFilled) / (r.total * 2)
+        : 0;
+      r.health = badRate >= 0.4 ? 'bad' : badRate >= 0.2 ? 'warning' : 'good';
+    });
     rows.sort((a, b) => b.total - a.total);
     return rows;
   });

@@ -4,6 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 
 import { AttentionProject } from '@features/dashboard/dashboard-aggregations';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 
 /**
  * Reusable list card used for "Delayed Projects" and "On Hold" panes.
@@ -12,7 +13,7 @@ import { AttentionProject } from '@features/dashboard/dashboard-aggregations';
 @Component({
   selector: 'app-attention-list',
   standalone: true,
-  imports: [ButtonModule, TooltipModule],
+  imports: [ButtonModule, TooltipModule, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="hdr">
@@ -22,12 +23,7 @@ import { AttentionProject } from '@features/dashboard/dashboard-aggregations';
     </header>
 
     @if (items().length === 0) {
-      <div class="empty">
-        <i class="pi pi-check-circle text-emerald-500 text-2xl mb-2 block"></i>
-        <div class="text-sm text-slate-500">
-          Nothing needs attention here — nice.
-        </div>
-      </div>
+      <app-empty-state variant="check" subtitle="Nothing needs attention here — nice." />
     } @else {
       <ul class="list">
         @for (row of items(); track row.project._id) {

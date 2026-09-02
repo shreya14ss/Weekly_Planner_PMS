@@ -39,6 +39,16 @@
   color: #0c4a6e;
 }
 
+.login-logo-plate {
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  box-shadow: 0 2px 6px rgba(2, 8, 23, 0.06);
+}
+
 .pin-badge {
   display: inline-block;
   padding: 0 6px;

@@ -3,14 +3,12 @@
   <header
     class="app-header text-white shadow-lg border-b-2 sticky top-0 z-40"
   >
-    <div class="flex items-center justify-between px-5 py-2.5 flex-wrap gap-3">
+    <div class="flex items-center justify-between px-6 py-2.5 flex-wrap gap-3 w-full">
       <!-- Brand -->
       <div class="flex items-center gap-3">
-        <div
-          class="w-10 h-10 rounded-lg bg-rbh-accent text-rbh-navy grid place-items-center font-black text-lg"
-        >
-          RBH
-        </div>
+        <span class="brand-logo-plate">
+          <img src="rbh-logo.png" alt="RBH Solutions" class="h-7 w-auto block object-contain" />
+        </span>
         <div>
           <div class="text-sm font-bold leading-tight">
             RBH Solutions
@@ -88,7 +86,8 @@
     </div>
 
     <!-- Nav tabs -->
-    <nav class="app-nav flex px-5 gap-1 flex-wrap border-t border-white/5">
+    <nav class="app-nav border-t border-white/5">
+      <div class="flex gap-1 flex-wrap px-6 w-full">
       <a
         routerLink="/app/dashboard"
         routerLinkActive="text-white tab-active-accent"
@@ -135,6 +134,7 @@
           <i class="pi pi-history"></i> History
         </a>
       }
+      </div>
     </nav>
   </header>
 
@@ -142,7 +142,7 @@
   <app-toolbar />
 
   <!-- Content -->
-  <main class="flex-1 max-w-[1380px] mx-auto w-full p-4 pb-20">
+  <main class="flex-1 w-full px-6 py-4 pb-20">
     <router-outlet />
   </main>
 

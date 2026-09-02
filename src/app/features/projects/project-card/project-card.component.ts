@@ -23,6 +23,7 @@ import { ProjectWeekEntry } from '@models/week';
 import { AuthService } from '@core/services/auth.service';
 import { WeekStateService } from '@core/services/week-state.service';
 import { canEditProject } from '@core/services/project-permissions';
+import { toIsoDate } from '@shared/utils/date.util';
 import { StatusChipComponent } from '@shared/components/status-chip/status-chip.component';
 import { TaskListComponent } from '@features/projects/task-list/task-list.component';
 
@@ -124,7 +125,9 @@ export class ProjectCardComponent {
 
   onTargetDateChange(d: Date | null): void {
     if (!this.canEdit()) return;
-    const iso = d ? d.toISOString().slice(0, 10) : undefined;
+    // Serialize from LOCAL components — toISOString() shifts to UTC and
+    // rolls back to the previous day for any timezone east of UTC (IST etc.).
+    const iso = d ? toIsoDate(d) : undefined;
     this.state.patchEntry(this.project()._id, { targetDate: iso });
   }
 

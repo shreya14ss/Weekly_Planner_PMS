@@ -1,10 +1,5 @@
 @if (rows().length === 0) {
-  <div class="empty">
-    <i class="pi pi-users text-3xl text-slate-300 block mb-2"></i>
-    <div class="text-sm text-slate-500">
-      No task data yet. Once weekly tasks are added, TL/engineer performance will appear here.
-    </div>
-  </div>
+  <app-empty-state variant="users" subtitle="No task data yet. Once weekly tasks are added, TL/engineer performance will appear here." />
 } @else {
   <div class="grid">
     @for (row of rows(); track row.name) {

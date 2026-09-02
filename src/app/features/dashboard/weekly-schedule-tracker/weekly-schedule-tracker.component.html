@@ -1,26 +1,46 @@
-<!-- Health summary pills -->
+<!-- Health summary pills (clickable filters) -->
 <div class="pills">
   @for (pill of pills; track pill.key) {
-    <div class="pill" [class]="pill.cls">
+    <button
+      type="button"
+      class="pill"
+      [class]="pill.cls"
+      [class.selected]="selectedKey() === pill.trackKey"
+      [class.pill-disabled]="summary()[pill.key] === 0"
+      [attr.aria-pressed]="selectedKey() === pill.trackKey"
+      [title]="summary()[pill.key] === 0 ? 'No projects in this bucket' : 'Click to filter'"
+      (click)="togglePill(pill)"
+    >
       <span class="dot" [style.background]="pill.dot"></span>
-      <div>
+      <div class="pill-body">
         <div class="num">{{ summary()[pill.key] }}</div>
         <div class="lbl">
           {{ pill.label }}<br />
           <span class="sub">{{ pill.sub }}</span>
         </div>
       </div>
-    </div>
+    </button>
   }
 </div>
 
-@if (rows().length === 0) {
-  <div class="empty">
-    <i class="pi pi-inbox text-3xl text-slate-300 block mb-2"></i>
-    <div class="text-sm text-slate-500">No active projects to track this week.</div>
+@if (activeLabel()) {
+  <div class="filter-hint">
+    <i class="pi pi-filter"></i>
+    Showing <b>{{ activeLabel() }}</b> only · {{ visibleRows().length }} project{{ visibleRows().length === 1 ? '' : 's' }}
+    <button type="button" class="clear-btn" (click)="clearFilter()">
+      <i class="pi pi-times"></i> Clear
+    </button>
   </div>
+}
+
+@if (visibleRows().length === 0) {
+  @if (rows().length === 0) {
+    <app-empty-state variant="tasks" subtitle="No active projects to track this week." />
+  } @else {
+    <app-empty-state variant="inbox" subtitle="No projects match this filter." />
+  }
 } @else {
-  <p-table [value]="rows()" [scrollable]="true" scrollHeight="480px" stripedRows>
+  <p-table [value]="visibleRows()" [scrollable]="true" scrollHeight="480px" stripedRows>
     <ng-template pTemplate="header">
       <tr>
         <th style="min-width:180px">Project</th>

@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 
 import { DelayedTaskRow } from '@features/dashboard/dashboard-aggregations';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 
 interface Group {
   key: string;
@@ -24,7 +25,7 @@ interface Group {
 @Component({
   selector: 'app-delayed-tasks-filter',
   standalone: true,
-  imports: [FormsModule, SelectModule, ButtonModule, TagModule],
+  imports: [FormsModule, SelectModule, ButtonModule, TagModule, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="hdr">
@@ -64,16 +65,11 @@ interface Group {
     </header>
 
     @if (filteredCount() === 0) {
-      <div class="empty">
-        <i class="pi pi-check-circle text-emerald-500 text-3xl block mb-2"></i>
-        <div class="text-sm text-slate-500">
-          @if (rows().length === 0) {
-            No delayed tasks in the current scope — nice.
-          } @else {
-            No delayed tasks match your filters.
-          }
-        </div>
-      </div>
+      @if (rows().length === 0) {
+        <app-empty-state variant="check" subtitle="No delayed tasks in the current scope — nice." />
+      } @else {
+        <app-empty-state variant="check" subtitle="No delayed tasks match your filters." />
+      }
     } @else {
       <div class="groups">
         @for (g of groups(); track g.key) {

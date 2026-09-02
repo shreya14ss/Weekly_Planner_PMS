@@ -22,8 +22,13 @@
           [ngModel]="name()"
           (ngModelChange)="name.set($event)"
           name="name"
-          [readonly]="nameReadonly()"
         />
+        @if (mode() === 'edit' && originalName() && name().trim() !== originalName()) {
+          <div class="hint">
+            Renaming will also update this user in every project they're
+            assigned to.
+          </div>
+        }
       </div>
 
       <div>
@@ -89,7 +94,12 @@
     @if (showFullForm()) {
       <div>
         <label for="um_email" class="lbl">
-          Email <span class="text-rose-600">*</span>
+          Email
+          @if (mode() === 'add') {
+            <span class="text-rose-600">*</span>
+          } @else {
+            <span class="opt">(optional)</span>
+          }
         </label>
         <input
           id="um_email"

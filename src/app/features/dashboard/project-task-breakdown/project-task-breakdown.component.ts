@@ -4,6 +4,7 @@ import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 
 import { ProjectTaskBreakdownRow } from '@features/dashboard/dashboard-aggregations';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 
 /**
  * Per-project task-status breakdown. Empty projects (no tasks yet)
@@ -12,17 +13,11 @@ import { ProjectTaskBreakdownRow } from '@features/dashboard/dashboard-aggregati
 @Component({
   selector: 'app-project-task-breakdown',
   standalone: true,
-  imports: [TableModule, ButtonModule],
+  imports: [TableModule, ButtonModule, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (rows().length === 0) {
-      <div class="empty">
-        <i class="pi pi-list-check text-3xl text-slate-300 block mb-2"></i>
-        <div class="text-sm text-slate-500">
-          No projects with weekly tasks yet. Once tasks are added, task-level
-          counts will appear here.
-        </div>
-      </div>
+      <app-empty-state variant="tasks" subtitle="No projects with weekly tasks yet. Once tasks are added, task-level counts will appear here." />
     } @else {
       <p-table
         [value]="rows()"

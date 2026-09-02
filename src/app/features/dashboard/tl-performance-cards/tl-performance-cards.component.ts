@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 import { TlPerformanceRow } from '@features/dashboard/dashboard-aggregations';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 
 /**
  * Port of legacy renderTLTrend — one card per person with task
@@ -10,6 +11,7 @@ import { TlPerformanceRow } from '@features/dashboard/dashboard-aggregations';
 @Component({
   selector: 'app-tl-performance-cards',
   standalone: true,
+  imports: [EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './tl-performance-cards.component.html',
   styleUrl: './tl-performance-cards.component.scss',

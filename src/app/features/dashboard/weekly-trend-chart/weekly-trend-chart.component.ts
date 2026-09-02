@@ -8,10 +8,20 @@ import {
   untracked,
 } from '@angular/core';
 
+import { NgApexchartsModule, type ApexOptions } from 'ng-apexcharts';
+
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { WeekRepository } from '@core/pouchdb/week.repository';
 import { WeekStateService } from '@core/services/week-state.service';
 import { IsoDate } from '@models/common';
 import { addWeeks, formatWeekRange } from '@shared/utils/date.util';
+import {
+  chartBase,
+  chartLegend,
+  chartStates,
+  chartTheme,
+  chartTooltip,
+} from '@shared/utils/chart-theme';
 
 interface WeekBucket {
   weekStart: IsoDate;
@@ -23,39 +33,24 @@ interface WeekBucket {
   total: number;
 }
 
-interface RenderedBar {
-  bucket: WeekBucket;
-  segments: { color: string; height: number; hint: string }[];
-  total: number;
-  isCurrent: boolean;
-}
-
-const CHART_H = 150; // px, matches SCSS
 const N_WEEKS = 6;
 
 /**
- * Portfolio health trend over the last 6 weeks.
- *
- * Each bar is a stack of On-Track / At-Risk / Delayed / On-Hold counts
- * derived from that week's stored entries. Loads asynchronously and
- * re-runs whenever the currently loaded week changes so the trend
- * always ends on the week the user is viewing.
+ * Portfolio health trend over the last 6 weeks. Rendered as an
+ * ApexCharts stacked column — On Track / At Risk / Delayed / On Hold
+ * per week, with the currently loaded week highlighted via a distinct
+ * label style.
  */
 @Component({
   selector: 'app-weekly-trend-chart',
   standalone: true,
+  imports: [NgApexchartsModule, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="hdr">
       <div>
         <h3 class="title">Weekly Tracker Trend</h3>
         <p class="sub">On Track / At Risk / Delayed / On Hold — last {{ nWeeks }} weeks</p>
-      </div>
-      <div class="legend">
-        <span class="l"><span class="dot dot-ok"></span>On Track</span>
-        <span class="l"><span class="dot dot-risk"></span>At Risk</span>
-        <span class="l"><span class="dot dot-late"></span>Delayed</span>
-        <span class="l"><span class="dot dot-hold"></span>On Hold</span>
       </div>
     </header>
 
@@ -65,36 +60,23 @@ const N_WEEKS = 6;
         Loading trend…
       </div>
     } @else if (!hasData()) {
-      <div class="empty">
-        <i class="pi pi-chart-bar text-3xl text-slate-300 block mb-2"></i>
-        <div class="text-sm text-slate-500">
-          No historical data yet. The trend fills in as weeks are used.
-        </div>
-      </div>
+      <app-empty-state variant="trend" subtitle="The trend fills in as weeks are used." />
     } @else {
-      <div class="chart" [style.height.px]="chartH">
-        @for (bar of bars(); track bar.bucket.weekStart) {
-          <div class="col">
-            <div class="col-num">{{ bar.total || '' }}</div>
-            <div class="stack">
-              @for (seg of bar.segments; track $index) {
-                <div
-                  class="seg"
-                  [style.height.px]="seg.height"
-                  [style.background]="seg.color"
-                  [title]="seg.hint"
-                ></div>
-              }
-            </div>
-            <div class="col-lbl" [class.current]="bar.isCurrent">
-              {{ bar.bucket.label }}
-              @if (bar.isCurrent) {
-                <span class="cur-mark">•</span>
-              }
-            </div>
-          </div>
-        }
-      </div>
+      <apx-chart
+        [series]="options().series!"
+        [chart]="options().chart!"
+        [colors]="options().colors!"
+        [plotOptions]="options().plotOptions!"
+        [dataLabels]="options().dataLabels!"
+        [annotations]="options().annotations!"
+        [xaxis]="options().xaxis!"
+        [yaxis]="options().yaxis!"
+        [grid]="options().grid!"
+        [legend]="options().legend!"
+        [tooltip]="options().tooltip!"
+        [states]="options().states!"
+        [theme]="options().theme!"
+      />
     }
   `,
   styleUrl: './weekly-trend-chart.component.scss',
@@ -104,24 +86,115 @@ export class WeeklyTrendChartComponent {
   private readonly state = inject(WeekStateService);
 
   protected readonly nWeeks = N_WEEKS;
-  protected readonly chartH = CHART_H;
 
   private readonly buckets = signal<WeekBucket[]>([]);
   protected readonly loading = signal(true);
 
   protected readonly hasData = computed(() => this.buckets().some((b) => b.total > 0));
 
-  protected readonly bars = computed<RenderedBar[]>(() => {
+  protected readonly options = computed<ApexOptions>(() => {
     const buckets = this.buckets();
-    const max = Math.max(1, ...buckets.map((b) => b.total));
     const currentWeek = this.state.loadedWeek();
+    const currentIdx = buckets.findIndex((b) => b.weekStart === currentWeek);
 
-    return buckets.map((b) => ({
-      bucket: b,
-      total: b.total,
-      isCurrent: b.weekStart === currentWeek,
-      segments: this.segmentsFor(b, max),
-    }));
+    return {
+      series: [
+        { name: 'On Track', data: buckets.map((b) => b.onTrack) },
+        { name: 'At Risk', data: buckets.map((b) => b.atRisk) },
+        { name: 'Delayed', data: buckets.map((b) => b.delayed) },
+        { name: 'On Hold', data: buckets.map((b) => b.onHold) },
+      ],
+      chart: {
+        ...chartBase,
+        type: 'bar',
+        stacked: true,
+        stackType: 'normal',
+        height: 260,
+      },
+      colors: ['#059669', '#D97706', '#DC2626', '#7C3AED'],
+      plotOptions: {
+        bar: {
+          borderRadius: 6,
+          borderRadiusApplication: 'end',
+          borderRadiusWhenStacked: 'last',
+          columnWidth: '52%',
+          dataLabels: {
+            total: {
+              enabled: true,
+              style: { fontWeight: 700, color: '#0f172a' },
+              // Only show a total above bars that actually have data;
+              // otherwise every empty week gets a redundant "0" label.
+              formatter: (v: string) => (Number(v) > 0 ? v : ''),
+            },
+          },
+        },
+      },
+      dataLabels: { enabled: false },
+      annotations: currentIdx >= 0
+        ? {
+            xaxis: [
+              {
+                x: buckets[currentIdx].label,
+                strokeDashArray: 0,
+                borderColor: 'transparent',
+                fillColor: '#dbeafe',
+                opacity: 0.35,
+              },
+            ],
+            points: [
+              {
+                // Anchor at the vertical midpoint of the current week's
+                // column so the label reads *inside* the bar rather
+                // than floating above it.
+                x: buckets[currentIdx].label,
+                y: buckets[currentIdx].total / 2,
+                marker: { size: 0 },
+                label: {
+                  text: 'This week',
+                  offsetY: 4,
+                  borderColor: 'transparent',
+                  borderWidth: 0,
+                  style: {
+                    color: '#ffffff',
+                    background: 'transparent',
+                    fontSize: '10.5px',
+                    fontWeight: '700',
+                    padding: { top: 0, bottom: 0, left: 0, right: 0 },
+                  },
+                },
+              },
+            ],
+          }
+        : undefined,
+      xaxis: {
+        categories: buckets.map((b) => b.label),
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        labels: {
+          style: {
+            fontSize: '11px',
+            colors: buckets.map((b) => (b.weekStart === currentWeek ? '#1a72cc' : '#64748b')),
+            fontWeight: 700,
+          },
+        },
+      },
+      yaxis: {
+        labels: {
+          style: { fontSize: '11px' },
+          formatter: (v: number) => (Number.isInteger(v) ? String(v) : ''),
+        },
+        forceNiceScale: true,
+      },
+      grid: {
+        borderColor: '#f1f5f9',
+        strokeDashArray: 3,
+        padding: { left: 6, right: 6 },
+      },
+      legend: chartLegend,
+      tooltip: chartTooltip,
+      states: chartStates,
+      theme: chartTheme,
+    };
   });
 
   constructor() {
@@ -129,17 +202,6 @@ export class WeeklyTrendChartComponent {
       const wk = this.state.loadedWeek();
       untracked(() => this.load(wk));
     });
-  }
-
-  private segmentsFor(b: WeekBucket, max: number): RenderedBar['segments'] {
-    if (b.total === 0) return [];
-    const scale = (n: number) => Math.round((n / max) * CHART_H);
-    return [
-      { color: '#059669', height: scale(b.onTrack), hint: `On Track: ${b.onTrack}` },
-      { color: '#D97706', height: scale(b.atRisk), hint: `At Risk: ${b.atRisk}` },
-      { color: '#DC2626', height: scale(b.delayed), hint: `Delayed: ${b.delayed}` },
-      { color: '#7C3AED', height: scale(b.onHold), hint: `On Hold: ${b.onHold}` },
-    ].filter((s) => s.height > 0);
   }
 
   private async load(anchor: IsoDate): Promise<void> {
@@ -209,7 +271,6 @@ export class WeeklyTrendChartComponent {
   }
 
   private shortLabel(iso: IsoDate): string {
-    // "29 Jun" — start-of-week is the more recognisable anchor
     return formatWeekRange(iso).split(' – ')[0];
   }
 }

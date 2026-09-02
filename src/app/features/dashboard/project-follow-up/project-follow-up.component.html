@@ -1,8 +1,5 @@
 @if (rows().length === 0) {
-  <div class="empty">
-    <i class="pi pi-check-circle text-emerald-500 text-3xl block mb-2"></i>
-    <div class="text-sm text-slate-500">No projects in scope.</div>
-  </div>
+  <app-empty-state variant="check" subtitle="No projects in scope." />
 } @else {
   <p-table [value]="rows()" [scrollable]="true" scrollHeight="500px" stripedRows>
     <ng-template pTemplate="header">

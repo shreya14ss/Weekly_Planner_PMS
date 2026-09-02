@@ -4,6 +4,7 @@ import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 
 import { FollowUpRow, TrackKey } from '@features/dashboard/dashboard-aggregations';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 
 /**
  * Port of legacy renderDayMatrix — "Project Task Status — Who Needs Follow-Up?"
@@ -13,7 +14,7 @@ import { FollowUpRow, TrackKey } from '@features/dashboard/dashboard-aggregation
 @Component({
   selector: 'app-project-follow-up',
   standalone: true,
-  imports: [TableModule, ButtonModule],
+  imports: [TableModule, ButtonModule, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './project-follow-up.component.html',
   styleUrl: './project-follow-up.component.scss',
