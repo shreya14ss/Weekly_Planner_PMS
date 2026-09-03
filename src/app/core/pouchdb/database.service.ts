@@ -1,7 +1,7 @@
 import { Injectable, signal, DestroyRef, inject } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 
-import { environment } from '@env/environment';
+import { AppSettingsService } from '@core/config/app-settings.service';
 import { BaseDoc, DocType } from '@models/common';
 import { PouchDB } from './pouchdb-loader';
 import { rangeForType } from './id-utils';
@@ -25,6 +25,7 @@ export type SyncStatus = 'idle' | 'connecting' | 'active' | 'paused' | 'error' |
 @Injectable({ providedIn: 'root' })
 export class DatabaseService {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly settings = inject(AppSettingsService);
 
   private local!: PouchDB.Database<BaseDoc>;
   private remote?: PouchDB.Database<BaseDoc>;
@@ -43,7 +44,7 @@ export class DatabaseService {
   async init(): Promise<void> {
     if (this.local) return;
 
-    this.local = new PouchDB<BaseDoc>(environment.couch.localDbPrefix, {
+    this.local = new PouchDB<BaseDoc>(this.settings.couch.LocalDbPrefix, {
       auto_compaction: true,
     });
 
@@ -58,8 +59,9 @@ export class DatabaseService {
 
     this.destroyRef.onDestroy(() => this.dispose());
 
-    if (environment.couch.remoteUrl) {
-      await this.configureRemote(environment.couch.remoteUrl, environment.couch.liveSync);
+    const url = this.settings.couchUrl;
+    if (url) {
+      await this.configureRemote(url, this.settings.couch.LiveSync);
     }
   }
 
@@ -136,6 +138,11 @@ export class DatabaseService {
     this.syncStatus.set('connecting');
     this.remote = new PouchDB<BaseDoc>(url, {
       skip_setup: true,
+      // Send the CouchDB AuthSession cookie set by /_session on every
+      // replication request. Without this, PouchDB fetches are anonymous
+      // and CouchDB (with require_valid_user=true) returns 401.
+      fetch: (input, init) =>
+        PouchDB.fetch(input, { ...(init ?? {}), credentials: 'include' }),
     });
 
     this.syncHandler = this.local

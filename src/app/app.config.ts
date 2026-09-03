@@ -13,6 +13,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { providePrimeNG } from 'primeng/config';
 
 import { routes } from './app.routes';
+import { provideAppSettings } from '@core/config/app-settings.providers';
 import { providePouchDb } from '@core/pouchdb/pouchdb.providers';
 import { RbhPreset } from '@core/theme/rbh-preset';
 
@@ -27,6 +28,7 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({ scrollPositionRestoration: 'top', anchorScrolling: 'enabled' }),
     ),
     provideAnimationsAsync(),
+    provideAppSettings(),
     providePrimeNG({
       theme: {
         preset: RbhPreset,

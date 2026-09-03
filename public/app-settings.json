@@ -1,0 +1,33 @@
+{
+  "appName": "Setpoint",
+  "org": "RBH Solutions",
+  "tagline": "Weekly SCADA Project Tracker",
+
+  "CouchDB": {
+    "ConnectionString": "http://164.52.199.179:5984/",
+    "couchIp": "127.0.0.1",
+    "port": "5984",
+    "DBName": "pmsapp",
+    "User": "admin",
+    "Password": "rbh@123456",
+    "LiveSync": true,
+    "LocalDbPrefix": "pmsapp"
+  },
+
+  "features": {
+    "legacyImport": false,
+    "auditLog": true,
+    "excelExport": true
+  },
+
+  "limits": {
+    "maxProjectsPerUser": 50,
+    "auditRetentionDays": 365,
+    "backdatingDaysAllowed": 14
+  },
+
+  "support": {
+    "contactEmail": "",
+    "docsUrl": ""
+  }
+}

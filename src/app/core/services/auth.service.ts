@@ -8,11 +8,9 @@ import { AuditRepository } from '@core/pouchdb/audit.repository';
 const SESSION_KEY = 'wpr_session';
 
 /**
- * PIN-based auth against the local UserRepository. We deliberately keep
- * this simple — the same trust model as the legacy HTML — because the
- * whole app is intended for a trusted intranet. If we ever expose it to
- * the public internet, swap `pin === input` for a hash comparison and
- * add rate-limiting.
+ * PIN-based auth against the local UserRepository. The CouchDB connection
+ * itself uses a shared admin account (configured in app-settings.json) —
+ * this service only decides which RBH user is currently signed in.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
