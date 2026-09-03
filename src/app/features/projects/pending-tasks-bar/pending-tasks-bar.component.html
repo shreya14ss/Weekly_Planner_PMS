@@ -1,11 +1,11 @@
-@if (total() > 0 || loading()) {
+@if (total() > 0 || loading() || alwaysShow()) {
   <section class="pending-bar">
     <header class="pb-head">
       <button type="button" class="pb-toggle" [attr.aria-expanded]="!collapsed()" (click)="toggle()">
         <i class="pi" [class.pi-chevron-down]="!collapsed()" [class.pi-chevron-right]="collapsed()"></i>
         <span class="pb-title">
           <i class="pi pi-clock text-amber-600"></i>
-          Pending from previous weeks
+          Pending Tasks — Priority Queue
           @if (total() > 0) {
             <span class="pb-badge">{{ total() }}</span>
           }
@@ -24,19 +24,28 @@
           [loading]="loading()"
           (onClick)="refresh()"
         />
-        @if (total() > 0) {
+        @if (total() > 0 && canCarry()) {
           <p-button
-            icon="pi pi-arrow-right"
-            label="Move all to this week"
-            severity="warn"
+            icon="pi pi-arrow-down"
+            label="All → This Week"
+            severity="success"
             size="small"
             (onClick)="moveAllToCurrent()"
+          />
+          <p-button
+            icon="pi pi-arrow-right"
+            label="All → Next Week"
+            severity="secondary"
+            size="small"
+            (onClick)="moveAllToNext()"
           />
         }
       </div>
     </header>
 
     @if (!collapsed()) {
+      <div class="pb-subtitle">Sorted by most delayed first &nbsp;·&nbsp; #1 = highest priority</div>
+
       @if (loading()) {
         <div class="pb-loading">
           <i class="pi pi-spinner pi-spin mr-2"></i>
@@ -49,14 +58,19 @@
         </div>
       } @else {
         <div class="pb-list">
-          @for (row of rows(); track row.item.task.id) {
+          @for (row of rows(); track row.rowKey) {
             <div
               class="pb-row"
               [class.pb-critical]="row.delayDays >= 14"
               [class.pb-high]="row.delayDays >= 7 && row.delayDays < 14"
               [class.pb-medium]="row.delayDays < 7"
             >
-              <div class="pb-rank" [class.rank-1]="row.rank === 1" [class.rank-2]="row.rank === 2" [class.rank-3]="row.rank === 3">
+              <div
+                class="pb-rank"
+                [class.rank-1]="row.rank === 1"
+                [class.rank-2]="row.rank === 2"
+                [class.rank-3]="row.rank === 3"
+              >
                 #{{ row.rank }}
               </div>
 
@@ -69,33 +83,124 @@
                     <i class="pi pi-clock"></i>
                     {{ row.delayDays }}d delayed
                   </span>
+                  <span class="pb-status-pill" [class]="row.status.cls">
+                    <i class="pi" [class]="row.status.icon"></i>
+                    {{ row.status.label }}
+                  </span>
                   <span class="pb-origin">From: {{ row.originWeekLabel }}</span>
                 </div>
 
-                @if (row.assigneeNames.length) {
-                  <div class="pb-assignees">
-                    <i class="pi pi-users"></i>
-                    {{ row.assigneeNames.join(', ') }}
+                <div class="pb-assignees">
+                  @if (row.assignees.length) {
+                    @for (a of row.assignees; track a.id) {
+                      <span class="pb-chip">
+                        <span class="pb-av" [class.pb-av-tl]="a.isTL">{{ a.initials }}</span>
+                        {{ a.shortName }}
+                      </span>
+                    }
+                  } @else {
+                    <span class="pb-unassigned">Not assigned</span>
+                  }
+
+                  @if (canCarry()) {
+                    <button type="button" class="pb-reassign" (click)="togglePicker(row)">
+                      <i class="pi pi-user-edit"></i>
+                      {{ row.assignees.length ? 'Change Assigned' : 'Assign' }}
+                    </button>
+                  }
+                </div>
+
+                @if (canCarry() && openPickerRow() === row.rowKey) {
+                  <div class="pb-picker">
+                    <div class="pb-picker-title">Select / change assignee</div>
+                    <div class="pb-picker-list">
+                      @for (opt of row.assigneeOptions; track opt.id) {
+                        <button
+                          type="button"
+                          class="pb-picker-row"
+                          [class.pb-picker-assigned]="opt.isAssigned"
+                          (click)="toggleAssignee(row, opt.id)"
+                        >
+                          <span class="pb-av" [class.pb-av-tl]="opt.role === 'tl'">{{
+                            opt.initials
+                          }}</span>
+                          <span class="pb-picker-name">{{ opt.name }}</span>
+                          <span class="pb-picker-role">{{ opt.role.toUpperCase() }}</span>
+                          @if (opt.isAssigned) {
+                            <i class="pi pi-check pb-picker-check"></i>
+                          }
+                        </button>
+                      }
+                    </div>
+                    <div class="pb-picker-actions">
+                      <p-button
+                        label="Done"
+                        icon="pi pi-check"
+                        severity="success"
+                        size="small"
+                        (onClick)="closePicker()"
+                      />
+                    </div>
                   </div>
                 }
-              </div>
 
-              <div class="pb-move">
-                <p-button
-                  label="This wk"
-                  icon="pi pi-arrow-down"
-                  size="small"
-                  severity="success"
-                  (onClick)="move(row, currentWeek())"
-                />
-                <p-button
-                  label="Next wk"
-                  icon="pi pi-arrow-right"
-                  size="small"
-                  severity="secondary"
-                  [outlined]="true"
-                  (onClick)="move(row, nextWeekIso())"
-                />
+                @if (canCarry()) {
+                  <div class="pb-status-row">
+                    <span class="pb-status-label">Status when moved:</span>
+                    <select
+                      class="pb-status-select"
+                      [value]="row.item.task.status"
+                      (change)="onStatusPicked(row, $event)"
+                    >
+                      @for (opt of statusOptions; track opt.value) {
+                        <option [value]="opt.value">{{ opt.label }}</option>
+                      }
+                    </select>
+                    <span class="pb-status-ctx" [style.color]="row.statusCtx.color">
+                      <i class="pi" [class]="row.statusCtx.icon"></i>
+                      {{ row.statusCtx.message }}
+                    </span>
+                  </div>
+
+                  <div class="pb-move-row">
+                    <span class="pb-move-label">Move to:</span>
+                    <p-button
+                      label="This Week"
+                      icon="pi pi-arrow-down"
+                      severity="success"
+                      size="small"
+                      (onClick)="move(row, currentWeek())"
+                    />
+                    <p-button
+                      label="Next Week"
+                      icon="pi pi-arrow-right"
+                      severity="secondary"
+                      size="small"
+                      (onClick)="move(row, nextWeekIso())"
+                    />
+                    <input
+                      type="date"
+                      class="pb-date-input"
+                      [value]="getCustomDate(row)"
+                      [min]="currentWeek()"
+                      (change)="setCustomDate(row, $any($event.target).value)"
+                    />
+                    <p-button
+                      label="To Date"
+                      icon="pi pi-calendar"
+                      severity="info"
+                      size="small"
+                      [disabled]="!getCustomDate(row)"
+                      (onClick)="moveToCustomDate(row)"
+                    />
+                  </div>
+
+                  <div class="pb-preserve-note">
+                    <i class="pi pi-info-circle"></i>
+                    Will carry with <strong>{{ row.delayDays }}d</strong> delay record. Due date
+                    preserved.
+                  </div>
+                }
               </div>
             </div>
           }

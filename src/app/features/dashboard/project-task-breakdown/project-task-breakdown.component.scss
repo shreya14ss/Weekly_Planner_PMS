@@ -66,3 +66,38 @@
 .dash {
   color: #cbd5e1;
 }
+
+.zero {
+  color: #cbd5e1;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.proj-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Slim stacked task-health bar under project name. */
+.mini-bar {
+  display: flex;
+  height: 6px;
+  width: 100%;
+  max-width: 240px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #f1f5f9;
+  margin-top: 6px;
+
+  .seg {
+    height: 100%;
+    display: block;
+    min-width: 3px;
+  }
+  .s-done    { background: var(--sev-done); }
+  .s-active  { background: var(--sev-active); }
+  .s-hold    { background: var(--sev-hold); }
+  .s-delayed { background: var(--sev-delayed); }
+  .s-pending { background: #cbd5e1; }
+}

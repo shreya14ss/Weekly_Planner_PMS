@@ -50,3 +50,18 @@ export const STATUS_COLORS: Record<string, string> = {
 export function statusColor(st: ProjectStatus | string): string {
   return STATUS_COLORS[st] ?? '#9CA3AF';
 }
+
+/**
+ * Map a raw project-status label (e.g. "In Progress", "Site Handed Over")
+ * to the dashboard's DashStatusFilter bucket. Returned as a plain string
+ * so callers stay decoupled from the filter service's type. Returns
+ * empty string when no natural bucket fits (e.g. "Not Set").
+ */
+export function dashFilterForStatusLabel(label: string): string {
+  if (isDoneStatus(label)) return 'completed';
+  if (isOnHold(label)) return 'hold';
+  if (isActiveStatus(label)) return 'active';
+  const l = (label || '').toLowerCase();
+  if (l.includes('not started')) return 'not-started';
+  return '';
+}

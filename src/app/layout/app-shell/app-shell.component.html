@@ -26,6 +26,9 @@
       <div class="flex items-center gap-3">
         <app-week-nav />
 
+        <!--
+          Sync status pill parked for now — DatabaseService still tracks the
+          state; re-enable this block when we want to surface it again.
         <p-tag
           [value]="'Sync: ' + syncStatus()"
           [severity]="syncSeverity()"
@@ -33,6 +36,7 @@
           pTooltip="Live sync with team database"
           tooltipPosition="bottom"
         />
+        -->
 
         <div
           class="flex items-center gap-2 bg-white/10 border border-white/20 rounded-full pr-3 pl-1 py-1"
@@ -58,8 +62,6 @@
             />
           }
         </div>
-
-        <app-theme-switcher />
 
         <p-button
           icon="pi pi-lock"

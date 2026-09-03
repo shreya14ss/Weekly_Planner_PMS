@@ -1,0 +1,111 @@
+:host {
+  display: block;
+}
+
+.strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(15, 32, 64, 0.04);
+}
+
+/* Inline in the nav bar — no chrome of its own. */
+.strip--compact {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  padding-right: 6px;
+  border-right: 1px solid #e2e8f0;
+  margin-right: 4px;
+
+  i {
+    color: #94a3b8;
+    font-size: 11px;
+  }
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: #0f172a;
+  background: #f8fafc;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px -6px rgba(15, 32, 64, 0.2);
+  }
+
+  &--active {
+    box-shadow: 0 0 0 2px currentColor inset;
+  }
+
+  i {
+    font-size: 13px;
+  }
+
+  .num {
+    font-weight: 800;
+    font-size: 13px;
+  }
+
+  .txt {
+    color: #475569;
+  }
+}
+
+.pill[data-tone='delayed'] {
+  background: var(--sev-delayed-tint);
+  color: var(--sev-delayed);
+  border-color: color-mix(in srgb, var(--sev-delayed) 20%, transparent);
+}
+
+.pill[data-tone='hold'] {
+  background: var(--sev-hold-tint);
+  color: var(--sev-hold);
+  border-color: color-mix(in srgb, var(--sev-hold) 20%, transparent);
+}
+
+.pill[data-tone='notfilled'] {
+  background: var(--sev-notfilled-tint);
+  color: var(--sev-notfilled);
+  border-color: color-mix(in srgb, var(--sev-notfilled) 20%, transparent);
+}
+
+.clear-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--sev-done-tint);
+  color: var(--sev-done);
+  border: 1px solid color-mix(in srgb, var(--sev-done) 20%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+}

@@ -46,7 +46,7 @@
     }
   </div>
 
-  <!-- Right group: report / clear / recover -->
+  <!-- Right group: report / recover -->
   <div class="grp">
     <p-button
       icon="pi pi-download"
@@ -59,19 +59,6 @@
       [disabled]="!hasProjects()"
       (onClick)="exportReport()"
     />
-    @if (auth.isPM()) {
-      <p-button
-        icon="pi pi-trash"
-        label="Clear Data"
-        severity="danger"
-        size="small"
-        [outlined]="true"
-        [loading]="clearing()"
-        pTooltip="Delete every project / week / audit doc. Preserves the seeded PM."
-        tooltipPosition="bottom"
-        (onClick)="clearAll($event)"
-      />
-    }
     <p-button
       icon="pi pi-history"
       label="Recover Tasks"
@@ -84,5 +71,3 @@
     />
   </div>
 </div>
-
-<p-confirmDialog />

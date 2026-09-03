@@ -119,8 +119,21 @@ export class WeekStateService {
     return task;
   }
 
-  removeTask(projectId: string, taskId: string): void {
+  removeTask(projectId: string, taskId: string, projectName?: string): void {
+    const removed = this.tasksFor(projectId).find((t) => t.id === taskId);
     this.mutateTasks(projectId, (tasks) => tasks.filter((t) => t.id !== taskId));
+
+    const user = this.auth.currentUser();
+    if (user && removed) {
+      this.audit.record({
+        userId: user.id,
+        userName: user.name,
+        role: user.role,
+        action: 'Task Deleted',
+        project: projectName,
+        detail: `Deleted: "${removed.name || 'unnamed'}"`,
+      });
+    }
   }
 
   updateTask(projectId: string, taskId: string, patch: Partial<WeekTask>): void {
@@ -189,6 +202,38 @@ export class WeekStateService {
    * `originalWeek` set so the delay counter keeps ticking.
    * ---------------------------------------------------------------- */
 
+  /**
+   * Edit a task that still lives in a previous week (i.e. hasn't been
+   * carried yet). Used by the pending-queue UI so PMs/TLs can set a
+   * status or reassign engineers *before* carrying the task forward —
+   * legacy parity with the Priority Queue card.
+   */
+  async patchPendingTask(
+    week: IsoDate,
+    projectId: string,
+    taskId: string,
+    patch: Partial<WeekTask>,
+  ): Promise<void> {
+    const doc = await this.weekRepo.load(week);
+    const entry = doc?.entries[projectId];
+    const tasks = entry?.weekTasks;
+    if (!doc || !entry || !tasks) return;
+
+    const idx = tasks.findIndex((t) => t.id === taskId);
+    if (idx < 0) return;
+
+    const nextTasks = [...tasks];
+    nextTasks[idx] = this.applyTaskPatch(tasks[idx], patch);
+    const now = new Date().toISOString();
+    const nextEntry: ProjectWeekEntry = {
+      ...entry,
+      weekTasks: nextTasks,
+      _lastEditBy: this.auth.currentUser()?.name ?? 'System',
+      _lastEditAt: now,
+    };
+    await this.weekRepo.upsertEntry(week, projectId, nextEntry);
+  }
+
   async loadPending(maxWeeks = 4): Promise<PendingTaskItem[]> {
     const current = this._loadedWeek();
     // Anything already carried in — filter it out to avoid duplicates.
@@ -200,18 +245,30 @@ export class WeekStateService {
     }
 
     const items: PendingTaskItem[] = [];
+    const scan: { week: IsoDate; found: 'no-doc' | number; kept: number }[] = [];
     for (let i = 1; i <= maxWeeks; i++) {
       const week = addWeeks(current, -i);
       const doc = await this.weekRepo.load(week);
-      if (!doc) continue;
+      if (!doc) {
+        scan.push({ week, found: 'no-doc', kept: 0 });
+        continue;
+      }
+      let rawCount = 0;
+      let keptCount = 0;
       for (const [projectId, entry] of Object.entries(doc.entries)) {
         for (const task of entry.weekTasks ?? []) {
+          rawCount++;
           if (task.status === 'completed') continue;
           if (carriedIn.has(task.id)) continue;
           items.push({ week, projectId, task });
+          keptCount++;
         }
       }
+      scan.push({ week, found: rawCount, kept: keptCount });
     }
+    // Temporary diagnostic — leave until the "empty on dashboard" bug is
+    // pinned down. Safe to remove after.
+    console.debug('[pending] loadedWeek=%s scan=%o total=%d', current, scan, items.length);
     return items;
   }
 

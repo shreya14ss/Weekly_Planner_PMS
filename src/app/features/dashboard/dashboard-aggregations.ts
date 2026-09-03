@@ -108,6 +108,17 @@ export interface FollowUpRow {
   trackStatus: TrackStatus;
 }
 
+export interface BlockerRow {
+  projectId: string;
+  client: string;
+  displayName: string;
+  engineers: string;
+  /** Free-text issue: from week entry remarks or project baseline remarks. */
+  issue: string;
+  /** True when the project is On Hold (drives badge color + fallback message). */
+  isHold: boolean;
+}
+
 export interface HealthSummary {
   onTrack: number;
   atRisk: number;
@@ -447,6 +458,38 @@ export function useDashboardAggregations(scope: () => ProjectDoc[]) {
     );
   });
 
+  /**
+   * Ported from legacy §"Blockers with issues" — every in-flight
+   * project that is either on hold or has any remarks recorded.
+   * Completed projects are excluded because they're no longer
+   * actionable. Sorted with On-Hold first (louder signal).
+   */
+  const blockers = computed<BlockerRow[]>(() => {
+    const projects = scope();
+    const entries = entriesSig();
+    const rows: BlockerRow[] = [];
+
+    for (const p of projects) {
+      const entry = entries[p._id];
+      const st = effectiveStatus(p, entry);
+      if (isDoneStatus(st)) continue;
+      const isHold = isOnHold(st);
+      const remarks = (entry?.remarks ?? p.remarks ?? '').trim();
+      if (!isHold && !remarks) continue;
+
+      rows.push({
+        projectId: p._id,
+        client: p.client,
+        displayName: displayNameFor(p),
+        engineers: p.engineers.join(', ') || 'Unassigned',
+        issue: remarks,
+        isHold,
+      });
+    }
+
+    return rows.sort((a, b) => Number(b.isHold) - Number(a.isHold));
+  });
+
   const trackerRows = computed<TrackerRow[]>(() => {
     const projects = scope();
     const entries = entriesSig();
@@ -593,6 +636,7 @@ export function useDashboardAggregations(scope: () => ProjectDoc[]) {
     projectTaskBreakdown,
     delayedTasks,
     followUpRows,
+    blockers,
     trackerRows,
     healthSummary,
     tlPerformance,

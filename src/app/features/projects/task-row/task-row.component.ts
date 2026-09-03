@@ -44,7 +44,7 @@ import { TaskAssigneesComponent } from '@features/projects/task-assignees/task-a
   styleUrl: './task-row.component.scss',
 })
 export class TaskRowComponent {
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   private readonly state = inject(WeekStateService);
 
   readonly project = input.required<ProjectDoc>();
@@ -137,8 +137,11 @@ export class TaskRowComponent {
   }
 
   onRemove(): void {
-    if (!this.canManage()) return;
-    this.state.removeTask(this.project()._id, this.task().id);
+    // Deletion is PM-only — TL/User can still add and edit tasks, but
+    // removing a task from the record is a destructive action reserved
+    // for the project manager.
+    if (!this.auth.isPM()) return;
+    this.state.removeTask(this.project()._id, this.task().id, this.project().name);
     this.removed.emit(this.task().id);
   }
 }

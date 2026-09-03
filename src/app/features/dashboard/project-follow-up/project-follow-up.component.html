@@ -87,3 +87,32 @@
     </ng-template>
   </p-table>
 }
+
+@if (blockers().length > 0) {
+  <section class="blockers-wrap">
+    <div class="blockers-title">
+      <span class="dot"></span>
+      Blockers &amp; Issues — {{ blockers().length }}
+      project{{ blockers().length === 1 ? '' : 's' }} need attention
+    </div>
+    @for (b of blockers(); track b.projectId) {
+      <button type="button" class="blocker-row" (click)="open.emit(b.projectId)">
+        <span class="blocker-client">{{ b.client }}</span>
+        <div class="blocker-info">
+          <div class="blocker-name">{{ b.displayName }}</div>
+          <div class="blocker-eng">{{ b.engineers }}</div>
+          @if (b.issue) {
+            <div class="blocker-issue">Issue: {{ b.issue }}</div>
+          } @else if (b.isHold) {
+            <div class="blocker-issue">
+              Status is On Hold — update remarks to note the reason
+            </div>
+          }
+        </div>
+        <span class="tk-badge" [class]="b.isHold ? 'tk-hold' : 'tk-risk'">
+          {{ b.isHold ? 'On Hold' : 'Needs Review' }}
+        </span>
+      </button>
+    }
+  </section>
+}

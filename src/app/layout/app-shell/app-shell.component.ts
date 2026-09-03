@@ -9,11 +9,11 @@ import { TooltipModule } from 'primeng/tooltip';
 
 import { AuthService } from '@core/services/auth.service';
 import { AppActionsService } from '@core/services/app-actions.service';
-import { DatabaseService } from '@core/pouchdb/database.service';
+// Sync status pill parked — see app-shell.component.html.
+// import { DatabaseService } from '@core/pouchdb/database.service';
 import { UserRepository } from '@core/pouchdb/user.repository';
 import { UserDoc } from '@models/user';
 import { WeekNavComponent } from '@shared/components/week-nav/week-nav.component';
-import { ThemeSwitcherComponent } from '@shared/components/theme-switcher/theme-switcher.component';
 import { UserFormModalComponent } from '@features/users/user-form-modal/user-form-modal.component';
 import { AddProjectModalComponent } from '@features/projects/add-project-modal/add-project-modal.component';
 import { AppToolbarComponent } from '@layout/app-toolbar/app-toolbar.component';
@@ -32,7 +32,6 @@ import { RecoveryDialogComponent } from '@layout/recovery-dialog/recovery-dialog
     TagModule,
     TooltipModule,
     WeekNavComponent,
-    ThemeSwitcherComponent,
     UserFormModalComponent,
     AddProjectModalComponent,
     AppToolbarComponent,
@@ -44,14 +43,15 @@ import { RecoveryDialogComponent } from '@layout/recovery-dialog/recovery-dialog
 })
 export class AppShellComponent {
   private readonly auth = inject(AuthService);
-  private readonly db = inject(DatabaseService);
+  // private readonly db = inject(DatabaseService);
   private readonly users = inject(UserRepository);
   protected readonly actions = inject(AppActionsService);
 
   readonly user = this.auth.currentUser;
   readonly isPM = this.auth.isPM;
   readonly isTL = this.auth.isTL;
-  readonly syncStatus = this.db.syncStatus;
+  // Sync status pill parked — see app-shell.component.html.
+  // readonly syncStatus = this.db.syncStatus;
 
   readonly pinModalOpen = signal(false);
   readonly pinEditing = computed<UserDoc | null>(() => {
@@ -84,13 +84,13 @@ export class AppShellComponent {
     () => this.initials().toLowerCase() !== this.roleLabel().toLowerCase(),
   );
 
-  readonly syncSeverity = computed<'success' | 'info' | 'warn' | 'danger'>(() => {
-    const s = this.syncStatus();
-    if (s === 'active') return 'success';
-    if (s === 'paused' || s === 'idle') return 'info';
-    if (s === 'offline') return 'warn';
-    return 'danger';
-  });
+  // readonly syncSeverity = computed<'success' | 'info' | 'warn' | 'danger'>(() => {
+  //   const s = this.syncStatus();
+  //   if (s === 'active') return 'success';
+  //   if (s === 'paused' || s === 'idle') return 'info';
+  //   if (s === 'offline') return 'warn';
+  //   return 'danger';
+  // });
 
   openChangePin(): void {
     this.pinModalOpen.set(true);

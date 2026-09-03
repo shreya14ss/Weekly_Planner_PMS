@@ -48,6 +48,18 @@
           (onClick)="onEdit($event)"
         />
       }
+      @if (auth.isPM()) {
+        <p-button
+          icon="pi pi-trash"
+          [rounded]="true"
+          [text]="true"
+          size="small"
+          severity="danger"
+          pTooltip="Delete project"
+          tooltipPosition="left"
+          (onClick)="onDelete($event)"
+        />
+      }
       <p-button
         [icon]="expanded() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
         [rounded]="true"

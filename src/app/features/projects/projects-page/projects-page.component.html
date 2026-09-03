@@ -75,6 +75,8 @@
 } @else {
   <!-- Grouped project list -->
   <div class="flex flex-col gap-4">
+    <p-confirmDialog />
+
     @for (group of groups(); track group.client) {
       <section class="client-group">
         <header class="client-header">
@@ -111,6 +113,7 @@
               <app-project-card
                 [project]="project"
                 (editRequested)="openEdit($event)"
+                (deleteRequested)="openDelete($event)"
               />
             }
           </div>

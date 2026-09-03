@@ -1,16 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService } from 'primeng/api';
 
 import { AppActionsService } from '@core/services/app-actions.service';
 import { AuthService } from '@core/services/auth.service';
 import { ExportService } from '@core/services/export.service';
 import { ProjectRepository } from '@core/pouchdb/project.repository';
-import { WeekStateService } from '@core/services/week-state.service';
 import { isProjectVisible } from '@core/services/project-permissions';
 import { ProjectDoc } from '@models/project';
 
@@ -20,13 +17,12 @@ import { ProjectDoc } from '@models/project';
  *
  * Buttons split into two groups:
  *   Left  — create / import / export
- *   Right — Excel report / clear / recover
+ *   Right — Excel report / recover
  */
 @Component({
   selector: 'app-toolbar',
   standalone: true,
-  imports: [ButtonModule, TooltipModule, ConfirmDialogModule],
-  providers: [ConfirmationService],
+  imports: [ButtonModule, TooltipModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app-toolbar.component.html',
   styleUrl: './app-toolbar.component.scss',
@@ -36,11 +32,7 @@ export class AppToolbarComponent {
   protected readonly auth = inject(AuthService);
   private readonly export_ = inject(ExportService);
   private readonly projects = inject(ProjectRepository);
-  private readonly state = inject(WeekStateService);
   private readonly router = inject(Router);
-  private readonly confirm = inject(ConfirmationService);
-
-  protected readonly clearing = signal(false);
 
   /** Projects the current user can see — the exports use this as scope. */
   private visibleProjects(): ProjectDoc[] {
@@ -62,27 +54,6 @@ export class AppToolbarComponent {
 
   exportReport(): void {
     this.export_.exportWeeklyReport(this.visibleProjects());
-  }
-
-  clearAll(event: MouseEvent): void {
-    this.confirm.confirm({
-      target: event.target as EventTarget,
-      message:
-        'This will DELETE every project, week, and audit entry in this browser. ' +
-        'The seeded PM account is preserved. This cannot be undone.',
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Clear Everything',
-      acceptButtonStyleClass: 'p-button-danger',
-      rejectLabel: 'Cancel',
-      accept: async () => {
-        this.clearing.set(true);
-        try {
-          await this.actions.clearAllData();
-        } finally {
-          this.clearing.set(false);
-        }
-      },
-    });
   }
 
   hasProjects(): boolean {

@@ -17,6 +17,29 @@
 @import 'primeicons/primeicons.css';
 
 /*
+ * Severity tokens — one shared palette for status colours across the
+ * whole app (KPI accents, donut segments, status pills, table dots).
+ * Keep the `-tint` version at ~10% of the accent so backgrounds stay
+ * subtle. Change here → change everywhere.
+ */
+:root {
+  --sev-active: #2563EB;
+  --sev-active-tint: #eff6ff;
+  --sev-done: #059669;
+  --sev-done-tint: #ecfdf5;
+  --sev-hold: #D97706;
+  --sev-hold-tint: #fffbeb;
+  --sev-delayed: #DC2626;
+  --sev-delayed-tint: #fef2f2;
+  --sev-notfilled: #7C3AED;
+  --sev-notfilled-tint: #f5f3ff;
+  --sev-notstarted: #64748B;
+  --sev-notstarted-tint: #f1f5f9;
+  --sev-neutral: #334155;
+  --sev-neutral-tint: #f1f5f9;
+}
+
+/*
  * Theme CSS variables — swapped at runtime by ThemeService via a
  * data-theme attribute on <html>. Every theme sets the same three
  * knobs; the AppShell and page backgrounds read from them.
@@ -86,5 +109,77 @@ body {
     font-weight: 700;
     text-align: center;
     border-radius: 0.5rem;
+  }
+}
+
+/*
+ * Week-picker popover — the `<p-popover>` used by <app-week-nav> in the shell
+ * header. Rendered into <body> (appendTo="body"), so PrimeNG chrome overrides
+ * have to live here rather than in the component's encapsulated styles.
+ *
+ * Goals:
+ *   - Softer, brand-tinted chrome (rounded, warm shadow)
+ *   - Neutralise PrimeNG's default day / today / selected backgrounds so the
+ *     component's own .day-cell chip has full control of the visual state
+ *     (in-week / selected / today) — no colour clash between blue and orange.
+ */
+.rbh-week-picker-pop.p-popover {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 22px 44px -18px rgba(15, 23, 42, 0.35);
+
+  .p-popover-content { padding: 0.85rem 0.85rem 0.6rem; }
+
+  .p-datepicker {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .p-datepicker-header {
+    background: transparent;
+    padding: 0.15rem 0.15rem 0.5rem;
+    border-bottom: 0;
+  }
+  .p-datepicker-title { color: #0f172a; font-weight: 700; }
+  .p-datepicker-nav-button {
+    color: var(--shell-accent, #e8721a);
+    &:hover {
+      background: color-mix(in srgb, var(--shell-accent, #e8721a) 12%, transparent);
+      color: var(--shell-accent, #e8721a);
+    }
+  }
+
+  .p-datepicker-weekday {
+    color: #64748b;
+    font-weight: 700;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .p-datepicker-weeknumber,
+  .p-datepicker-weekheader {
+    color: #94a3b8;
+    background: #f8fafc;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  /*
+   * Let the component-owned .day-cell chip own the visual state. Kill
+   * PrimeNG's default backgrounds/rings on the wrapping day span so the
+   * inner chip isn't fighting a competing colour underneath.
+   */
+  .p-datepicker-day-cell .p-datepicker-day,
+  .p-datepicker-day-cell .p-datepicker-day-selected {
+    background: transparent;
+    color: inherit;
+    box-shadow: none;
+    padding: 0;
+  }
+  .p-datepicker-day-cell .p-datepicker-day:hover {
+    background: transparent;
   }
 }

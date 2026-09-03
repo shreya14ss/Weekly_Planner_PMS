@@ -11,14 +11,14 @@
       (ngModelChange)="onNameChange($event)"
       [readonly]="!canEdit()"
     />
-    @if (canManage()) {
+    @if (auth.isPM()) {
       <p-button
         icon="pi pi-times"
         [rounded]="true"
         [text]="true"
         severity="danger"
         size="small"
-        pTooltip="Remove task"
+        pTooltip="Delete task"
         tooltipPosition="left"
         (onClick)="onRemove()"
       />

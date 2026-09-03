@@ -2,7 +2,6 @@ import { Injectable, inject, signal } from '@angular/core';
 
 import { DatabaseService } from '@core/pouchdb/database.service';
 import { ProjectRepository } from '@core/pouchdb/project.repository';
-import { UserRepository } from '@core/pouchdb/user.repository';
 import { WeekRepository } from '@core/pouchdb/week.repository';
 import { AuditRepository } from '@core/pouchdb/audit.repository';
 import { AuthService } from '@core/services/auth.service';
@@ -14,7 +13,8 @@ import { WeekDoc } from '@models/week';
 
 /**
  * Cross-cutting UI actions triggered from the persistent toolbar
- * (Add Project modal, Recovery dialog, JSON backup, Clear All).
+ * (Add Project modal, Recovery dialog, JSON backup) plus destructive
+ * PM-only operations (delete project).
  *
  * Modal *state* lives here so the toolbar can trigger from anywhere
  * while the modal itself is mounted once in the AppShell.
@@ -23,7 +23,6 @@ import { WeekDoc } from '@models/week';
 export class AppActionsService {
   private readonly db = inject(DatabaseService);
   private readonly projects = inject(ProjectRepository);
-  private readonly users = inject(UserRepository);
   private readonly weekRepo = inject(WeekRepository);
   private readonly audit = inject(AuditRepository);
   private readonly auth = inject(AuthService);
@@ -90,34 +89,37 @@ export class AppActionsService {
   }
 
   /**
-   * Nuke everything except the seeded PM. The empty-write guard on
-   * WeekRepository doesn't protect us here — that's for accidental
-   * empty writes, not deliberate wipes. Confirm at the UI layer.
+   * PM-only: remove a project and every weekly entry recorded against
+   * it. Callers are expected to have confirmed the destructive action
+   * at the UI layer.
    */
-  async clearAllData(): Promise<void> {
-    if (this.auth.role() !== 'pm') throw new Error('Only PM can clear all data.');
+  async deleteProject(project: ProjectDoc): Promise<void> {
+    if (this.auth.role() !== 'pm') throw new Error('Only PM can delete a project.');
 
-    for (const type of ['project', 'week', 'audit'] as const) {
-      const docs = await this.db.allByType(type);
-      for (const doc of docs) await this.db.remove(doc);
+    // Drop any in-flight edits so the currently-loaded week's UI
+    // doesn't try to re-save a stale entry after the doc is gone.
+    this.weekState.discardProject(project._id);
+
+    // Sweep every stored week for this project's entry. `removeEntry`
+    // is a no-op if the entry is missing, so this is idempotent per
+    // week doc.
+    const weekStarts = await this.weekRepo.listAvailableWeeks();
+    for (const weekStart of weekStarts) {
+      await this.weekRepo.removeEntry(weekStart, project._id);
     }
-    // Users: keep the seeded PM so the app doesn't lock itself out.
-    const users = await this.db.allByType<UserDoc>('user');
-    for (const u of users) {
-      if (u._id === 'user:pm') continue;
-      await this.db.remove(u);
-    }
 
-    await Promise.all([this.projects.init(), this.users.init(), this.weekState.init()]);
+    await this.projects.remove(project);
 
-    const currentUser = this.auth.currentUser();
-    if (currentUser) {
+    const user = this.auth.currentUser();
+    if (user) {
+      const label = project.name && project.name !== '—' ? project.name : `${project.client} Site`;
       this.audit.record({
-        userId: currentUser.id,
-        userName: currentUser.name,
-        role: currentUser.role,
-        action: 'Form Updated',
-        detail: 'CLEAR ALL DATA — every project / week / audit doc removed',
+        userId: user.id,
+        userName: user.name,
+        role: user.role,
+        action: 'Project Deleted',
+        project: label,
+        detail: `Deleted project "${label}" (${project.client}) and all weekly entries`,
       });
     }
   }

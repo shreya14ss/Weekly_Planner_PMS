@@ -1,7 +1,6 @@
-<!-- Sticky filter bar -->
-<section class="filter-bar">
-  <div class="filter-group">
-    <label class="filter-label" for="dfClient">Client</label>
+<!-- Sticky filter + tab shell -->
+<div class="dash-sticky">
+  <section class="filter-bar">
     <p-select
       inputId="dfClient"
       [options]="clientOptions()"
@@ -9,13 +8,11 @@
       optionValue="value"
       [ngModel]="filter.client()"
       (ngModelChange)="filter.client.set($event); filter.tl.set('all')"
+      placeholder="All Clients"
       class="filter-sel"
       appendTo="body"
     />
-  </div>
 
-  <div class="filter-group">
-    <label class="filter-label" for="dfTl">TL / Engineer</label>
     <p-select
       inputId="dfTl"
       [options]="tlOptions()"
@@ -25,13 +22,11 @@
       (ngModelChange)="filter.tl.set($event)"
       [filter]="true"
       filterBy="label"
+      placeholder="All TLs / Engineers"
       class="filter-sel"
       appendTo="body"
     />
-  </div>
 
-  <div class="filter-group">
-    <label class="filter-label" for="dfStatus">Status</label>
     <p-select
       inputId="dfStatus"
       [options]="statusOptions"
@@ -39,142 +34,204 @@
       optionValue="value"
       [ngModel]="filter.status()"
       (ngModelChange)="filter.status.set($event)"
+      placeholder="All Status"
       class="filter-sel"
       appendTo="body"
     />
+
+    @if (hasAnyFilter()) {
+      <p-button
+        label="Reset"
+        icon="pi pi-refresh"
+        severity="secondary"
+        [text]="true"
+        size="small"
+        (onClick)="reset()"
+      />
+    }
+
+    <div class="filter-count">
+      <i class="pi pi-eye text-slate-400"></i>
+      {{ kpis().total }} project{{ kpis().total === 1 ? '' : 's' }} in scope
+    </div>
+  </section>
+
+  <!-- Mini-nav + priority strip in a single sticky row -->
+  <div class="nav-row">
+    <nav class="mini-nav" aria-label="Dashboard sections">
+      @for (tab of tabs; track tab.id) {
+        <button
+          type="button"
+          class="mini-tab"
+          [class.mini-tab--active]="activeTab() === tab.id"
+          (click)="jumpTo(tab.id)"
+        >
+          <i class="pi" [class]="tab.icon" aria-hidden="true"></i>
+          {{ tab.label }}
+        </button>
+      }
+    </nav>
+    @if (!loading()) {
+      <app-priority-strip
+        class="nav-strip"
+        [kpis]="kpis()"
+        [activeStatus]="filter.status()"
+        [compact]="true"
+        (filter)="applyStatusFilter($event)"
+      />
+    }
   </div>
-
-  @if (hasAnyFilter()) {
-    <p-button
-      label="Reset"
-      icon="pi pi-refresh"
-      severity="secondary"
-      [text]="true"
-      size="small"
-      (onClick)="reset()"
-    />
-  }
-
-  <div class="filter-count">
-    <i class="pi pi-eye text-slate-400"></i>
-    {{ kpis().total }} project{{ kpis().total === 1 ? '' : 's' }} in scope
-  </div>
-</section>
-
-<!-- 1. KPI row -->
-<section class="mt-4">
-  <app-kpi-cards [kpis]="kpis()" />
-</section>
-
-<!-- 2. Project Task Status Breakdown -->
-<p-card class="block mt-4">
-  <ng-template pTemplate="header">
-    <div class="card-title">Project Task Status Breakdown</div>
-  </ng-template>
-  <app-project-task-breakdown
-    [rows]="projectTaskBreakdown()"
-    (open)="openProject($event)"
-  />
-</p-card>
-
-<!-- 3. Status Distribution + Projects by Client -->
-<div class="chart-row mt-4">
-  <p-card>
-    <ng-template pTemplate="header">
-      <div class="card-title">Status Distribution</div>
-    </ng-template>
-    <app-status-donut [segments]="statusSegments()" />
-  </p-card>
-
-  <p-card>
-    <ng-template pTemplate="header">
-      <div class="card-title">Projects by Client</div>
-    </ng-template>
-    <app-client-bars [bars]="clientBars()" />
-  </p-card>
 </div>
 
-<!-- 4. Project Task Status — Who Needs Follow-Up? -->
-<p-card class="block mt-4">
-  <ng-template pTemplate="header">
-    <div class="card-title-wrap">
-      <div class="card-title"><i class="pi pi-list-check"></i> Project Task Status — Who Needs Follow-Up?</div>
-      <div class="card-sub">
-        One row per project · All assigned members shown · Click for details ›
+@if (loading()) {
+  <!-- Skeleton: matches the KPI row footprint so the layout doesn't jump. -->
+  <section class="mt-3 skel-kpis">
+    @for (i of skeletonKpis; track i) {
+      <div class="skel skel-tile"></div>
+    }
+  </section>
+  <div class="skel skel-strip mt-3"></div>
+  <div class="skel skel-card mt-3"></div>
+  <div class="skel skel-card mt-3"></div>
+} @else {
+  <!-- OVERVIEW: KPI row -->
+  <section id="sec-overview" #section class="mt-3">
+    <app-kpi-cards [kpis]="kpis()" />
+  </section>
+
+  <!-- ATTENTION: the operational tables -->
+  <section id="sec-attention" #section class="dash-section mt-4">
+    <div class="section-head">
+      <h2 class="section-title"><i class="pi pi-flag-fill"></i> Attention</h2>
+      <span class="section-sub">Tasks and projects that need action this week</span>
+    </div>
+
+    <div class="flat-block mt-2">
+      <app-delayed-tasks-filter
+        [rows]="delayedTasks()"
+        (open)="openProject($event)"
+      />
+    </div>
+
+    <div class="flat-block mt-3">
+      <div class="block-head">
+        <h3 class="block-title"><i class="pi pi-calendar"></i> Weekly Schedule Tracker</h3>
+        <span class="block-sub">Per-project weekly target + task health</span>
+      </div>
+      <app-weekly-schedule-tracker
+        [rows]="trackerRows()"
+        [summary]="healthSummary()"
+      />
+    </div>
+
+    <div class="attention-row mt-3">
+      <div class="flat-block">
+        <app-attention-list
+          title="Delayed Projects"
+          titleColor="var(--sev-delayed)"
+          [items]="delayedList()"
+          (open)="openProject($event)"
+        />
+      </div>
+      <div class="flat-block">
+        <app-attention-list
+          title="On Hold Projects"
+          titleColor="var(--sev-hold)"
+          [items]="onHoldList()"
+          (open)="openProject($event)"
+        />
       </div>
     </div>
-  </ng-template>
-  <app-project-follow-up
-    [rows]="followUpRows()"
-    (open)="openProject($event)"
-  />
-</p-card>
+  </section>
 
-<!-- 5. Weekly Schedule Tracker -->
-<p-card class="block mt-4">
-  <ng-template pTemplate="header">
-    <div class="card-title-wrap">
-      <div class="card-title"><i class="pi pi-calendar"></i> Weekly Schedule Tracker</div>
-      <div class="card-sub">
-        Health summary plus per-project weekly target and task status
+  <!-- ANALYTICS: aggregate views + charts -->
+  <section id="sec-analytics" #section class="dash-section mt-4">
+    <div class="section-head">
+      <h2 class="section-title"><i class="pi pi-chart-pie"></i> Analytics</h2>
+      <span class="section-sub">Portfolio distributions and weekly trends</span>
+    </div>
+
+    <div class="flat-block mt-2">
+      <div class="block-head">
+        <h3 class="block-title">Project Task Status Breakdown</h3>
       </div>
+      <app-project-task-breakdown
+        [rows]="projectTaskBreakdown()"
+        (open)="openProject($event)"
+      />
     </div>
-  </ng-template>
-  <app-weekly-schedule-tracker
-    [rows]="trackerRows()"
-    [summary]="healthSummary()"
-  />
-</p-card>
 
-<!-- 6. Engineer performance -->
-<p-card class="block mt-4">
-  <ng-template pTemplate="header">
-    <div class="card-title">Engineer Performance</div>
-  </ng-template>
-  <app-engineer-performance [rows]="engineerRows()" />
-</p-card>
+    <!--
+      Status Distribution card — hidden for now (donut wasn't earning
+      its space when 47/48 projects are "Not Set"). Kept commented so
+      it can be flipped back on later without redoing the wiring.
 
-<!-- 7. Attention row: delayed + on hold -->
-<div class="attention-row mt-4">
-  <p-card>
-    <app-attention-list
-      title="Delayed Projects"
-      titleColor="#DC2626"
-      [items]="delayedList()"
-      (open)="openProject($event)"
-    />
-  </p-card>
-
-  <p-card>
-    <app-attention-list
-      title="On Hold Projects"
-      titleColor="#D97706"
-      [items]="onHoldList()"
-      (open)="openProject($event)"
-    />
-  </p-card>
-</div>
-
-<!-- 8. Weekly Tracker Trend -->
-<p-card class="block mt-4">
-  <app-weekly-trend-chart />
-</p-card>
-
-<!-- 9. Delayed Tasks — Project-wise Breakdown -->
-<p-card class="block mt-4">
-  <app-delayed-tasks-filter
-    [rows]="delayedTasks()"
-    (open)="openProject($event)"
-  />
-</p-card>
-
-<!-- 10. TL / Engineer Performance & Delay Trend -->
-<p-card class="block mt-4">
-  <ng-template pTemplate="header">
-    <div class="card-title-wrap">
-      <div class="card-title"><i class="pi pi-chart-line"></i> TL / Engineer Performance &amp; Delay Trend</div>
-      <div class="card-sub">Identify who has the most delayed or stuck tasks</div>
+    <div class="flat-block mt-3">
+      <div class="block-head">
+        <h3 class="block-title">Status Distribution</h3>
+      </div>
+      <app-status-donut
+        [segments]="statusSegments()"
+        [activeStatus]="filter.status()"
+        (filter)="applyStatusLabelFilter($event)"
+      />
     </div>
-  </ng-template>
-  <app-tl-performance-cards [rows]="tlPerformance()" />
-</p-card>
+    -->
+
+    <div class="flat-block mt-3">
+      <div class="block-head">
+        <h3 class="block-title">Projects by Client</h3>
+      </div>
+      <app-client-bars [bars]="clientBars()" />
+    </div>
+
+    <div class="flat-block mt-3">
+      <app-weekly-trend-chart />
+    </div>
+  </section>
+
+  <!-- PEOPLE: follow-up & performance -->
+  <section id="sec-people" #section class="dash-section mt-4">
+    <div class="section-head">
+      <h2 class="section-title"><i class="pi pi-users"></i> People</h2>
+      <span class="section-sub">Follow-up, engineer and TL performance</span>
+    </div>
+
+    <div class="flat-block mt-2">
+      <div class="block-head">
+        <h3 class="block-title"><i class="pi pi-list-check"></i> Who Needs Follow-Up?</h3>
+        <span class="block-sub">One row per project · all assigned members · click for details ›</span>
+      </div>
+      <app-project-follow-up
+        [rows]="followUpRows()"
+        [blockers]="blockers()"
+        (open)="openProject($event)"
+      />
+    </div>
+
+    <div class="flat-block mt-3">
+      <div class="block-head">
+        <h3 class="block-title">Engineer Performance</h3>
+      </div>
+      <app-engineer-performance [rows]="engineerRows()" />
+    </div>
+
+    <app-pending-tasks-bar class="mt-3" [alwaysShow]="true" />
+
+    <div class="flat-block mt-3">
+      <div class="block-head">
+        <h3 class="block-title"><i class="pi pi-chart-line"></i> TL / Engineer Performance &amp; Delay Trend</h3>
+        <span class="block-sub">Identify who has the most delayed or stuck tasks</span>
+      </div>
+      <app-tl-performance-cards [rows]="tlPerformance()" />
+    </div>
+  </section>
+}
+
+<!-- Shared project-detail modal — every row's `open` event pops this. -->
+<app-project-detail-modal
+  [(visible)]="detailOpen"
+  [projectId]="detailProjectId()"
+  (open)="navigateToProject($event)"
+/>
+

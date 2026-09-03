@@ -60,6 +60,7 @@ export class ProjectCardComponent {
 
   readonly project = input.required<ProjectDoc>();
   readonly editRequested = output<ProjectDoc>();
+  readonly deleteRequested = output<ProjectDoc>();
 
   protected readonly expanded = signal(false);
 
@@ -111,6 +112,11 @@ export class ProjectCardComponent {
   onEdit(event: Event): void {
     event.stopPropagation();
     this.editRequested.emit(this.project());
+  }
+
+  onDelete(event: Event): void {
+    event.stopPropagation();
+    this.deleteRequested.emit(this.project());
   }
 
   onStatusChange(value: ProjectStatus): void {

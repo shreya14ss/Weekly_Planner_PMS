@@ -1,45 +1,68 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-import { NgApexchartsModule, type ApexOptions } from 'ng-apexcharts';
-
 import { ClientBar } from '@features/dashboard/dashboard-aggregations';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
-import {
-  chartBase,
-  chartLegend,
-  chartStates,
-  chartTheme,
-  chartTooltip,
-} from '@shared/utils/chart-theme';
+
+interface LeaderboardRow {
+  client: string;
+  total: number;
+  active: number;
+  done: number;
+  hold: number;
+  other: number;
+  attention: number;
+}
 
 /**
- * Horizontal stacked bar per client — Active / Completed / On Hold / Other.
- * Rendered by ApexCharts so we get built-in tooltips and legend hover
- * highlighting without hand-rolling the segment math.
+ * Compact per-client leaderboard. Each row = client name, a slim
+ * stacked bar showing status composition, and the total count. Clients
+ * are ordered by "actionable" work (on-hold + other/unknown) descending
+ * so the ones that need attention float to the top. Pure HTML/CSS —
+ * dropped ApexCharts here because at ~12 clients on 47 "not filled"
+ * projects the chart was mostly gray with wasted axis space.
  */
 @Component({
   selector: 'app-client-bars',
   standalone: true,
-  imports: [NgApexchartsModule, EmptyStateComponent],
+  imports: [EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (bars().length === 0) {
       <app-empty-state variant="chart" subtitle="No client breakdown available." />
     } @else {
-      <apx-chart
-        [series]="options().series!"
-        [chart]="options().chart!"
-        [colors]="options().colors!"
-        [plotOptions]="options().plotOptions!"
-        [dataLabels]="options().dataLabels!"
-        [xaxis]="options().xaxis!"
-        [yaxis]="options().yaxis!"
-        [grid]="options().grid!"
-        [legend]="options().legend!"
-        [tooltip]="options().tooltip!"
-        [states]="options().states!"
-        [theme]="options().theme!"
-      />
+      <div class="legend">
+        <span class="lg lg-active"><span class="dot"></span> Active</span>
+        <span class="lg lg-done"><span class="dot"></span> Completed</span>
+        <span class="lg lg-hold"><span class="dot"></span> On Hold</span>
+        <span class="lg lg-other"><span class="dot"></span> Other</span>
+      </div>
+
+      <ul class="board">
+        @for (r of rows(); track r.client) {
+          <li class="row">
+            <span class="client" [title]="r.client">{{ r.client }}</span>
+            <div class="bar" [attr.aria-label]="r.client + ' status breakdown'">
+              @if (r.active > 0) {
+                <span class="seg s-active" [style.width.%]="pct(r.active, r.total)"
+                      [title]="r.active + ' active'">{{ segLabel(r.active, r.total) }}</span>
+              }
+              @if (r.done > 0) {
+                <span class="seg s-done" [style.width.%]="pct(r.done, r.total)"
+                      [title]="r.done + ' completed'">{{ segLabel(r.done, r.total) }}</span>
+              }
+              @if (r.hold > 0) {
+                <span class="seg s-hold" [style.width.%]="pct(r.hold, r.total)"
+                      [title]="r.hold + ' on hold'">{{ segLabel(r.hold, r.total) }}</span>
+              }
+              @if (r.other > 0) {
+                <span class="seg s-other" [style.width.%]="pct(r.other, r.total)"
+                      [title]="r.other + ' other / not set'">{{ segLabel(r.other, r.total) }}</span>
+              }
+            </div>
+            <span class="total">{{ r.total }}</span>
+          </li>
+        }
+      </ul>
     }
   `,
   styleUrl: './client-bars.component.scss',
@@ -47,59 +70,27 @@ import {
 export class ClientBarsComponent {
   readonly bars = input.required<ClientBar[]>();
 
-  protected readonly options = computed<ApexOptions>(() => {
-    const rows = this.bars();
-    // Rough sizing: 44px per client row plus header/footer chrome.
-    const height = Math.max(160, rows.length * 44 + 90);
-
-    return {
-      series: [
-        { name: 'Active', data: rows.map((r) => r.active) },
-        { name: 'Completed', data: rows.map((r) => r.done) },
-        { name: 'On Hold', data: rows.map((r) => r.hold) },
-        { name: 'Other', data: rows.map((r) => r.other) },
-      ],
-      chart: {
-        ...chartBase,
-        type: 'bar',
-        stacked: true,
-        stackType: 'normal',
-        height,
-      },
-      colors: ['#2563EB', '#059669', '#D97706', '#9CA3AF'],
-      plotOptions: {
-        bar: {
-          horizontal: true,
-          borderRadius: 4,
-          borderRadiusApplication: 'end',
-          barHeight: '58%',
-          dataLabels: { total: { enabled: true, style: { fontWeight: 700, color: '#0f172a' } } },
-        },
-      },
-      dataLabels: {
-        enabled: true,
-        style: { fontSize: '11px', fontWeight: 700, colors: ['#ffffff'] },
-        formatter: (v) => (Number(v) > 0 ? String(v) : ''),
-      },
-      xaxis: {
-        categories: rows.map((r) => r.client),
-        axisBorder: { show: false },
-        axisTicks: { show: false },
-        labels: { style: { fontSize: '11px' } },
-      },
-      yaxis: {
-        labels: { style: { fontSize: '12px', fontWeight: 700 } },
-      },
-      grid: {
-        borderColor: '#f1f5f9',
-        strokeDashArray: 3,
-        yaxis: { lines: { show: false } },
-        padding: { left: 6, right: 12 },
-      },
-      legend: chartLegend,
-      tooltip: chartTooltip,
-      states: chartStates,
-      theme: chartTheme,
-    };
+  /**
+   * Enriched + reordered. Sort key = attention (hold + other) desc,
+   * then total desc — puts the clients who need action first.
+   */
+  protected readonly rows = computed<LeaderboardRow[]>(() => {
+    return this.bars()
+      .map((b) => ({
+        ...b,
+        attention: b.hold + b.other,
+      }))
+      .sort((a, b) => b.attention - a.attention || b.total - a.total);
   });
+
+  protected pct(part: number, total: number): number {
+    if (total <= 0) return 0;
+    return (part / total) * 100;
+  }
+
+  /** Only render the number inside a segment if it's wide enough to fit. */
+  protected segLabel(part: number, total: number): string {
+    if (total <= 0) return '';
+    return this.pct(part, total) >= 12 ? String(part) : '';
+  }
 }

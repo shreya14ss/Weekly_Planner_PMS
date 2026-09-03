@@ -7,6 +7,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
 
 import { ProjectDoc } from '@models/project';
 import { AuthService } from '@core/services/auth.service';
@@ -35,9 +37,11 @@ import { PendingTasksBarComponent } from '@features/projects/pending-tasks-bar/p
     CardModule,
     TagModule,
     TooltipModule,
+    ConfirmDialogModule,
     ProjectCardComponent,
     PendingTasksBarComponent,
   ],
+  providers: [ConfirmationService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './projects-page.component.html',
   styleUrl: './projects-page.component.scss',
@@ -47,6 +51,7 @@ export class ProjectsPageComponent {
   protected readonly filter = inject(ProjectFilterService);
   protected readonly state = inject(WeekStateService);
   private readonly actions = inject(AppActionsService);
+  private readonly confirm = inject(ConfirmationService);
 
   protected readonly search = signal('');
   protected readonly collapsedClients = signal<ReadonlySet<string>>(new Set());
@@ -82,6 +87,22 @@ export class ProjectsPageComponent {
 
   openEdit(p: ProjectDoc): void {
     this.actions.openEditProject(p);
+  }
+
+  openDelete(p: ProjectDoc): void {
+    if (!this.auth.isPM()) return;
+    const label = p.name && p.name !== '—' ? p.name : `${p.client} Site`;
+    this.confirm.confirm({
+      header: 'Delete project',
+      message:
+        `Delete "${label}"? This removes the project and every weekly ` +
+        `entry recorded against it. This cannot be undone.`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Delete',
+      acceptButtonStyleClass: 'p-button-danger',
+      rejectLabel: 'Cancel',
+      accept: () => void this.actions.deleteProject(p),
+    });
   }
 
   addProjectFor(client: string, event: MouseEvent): void {

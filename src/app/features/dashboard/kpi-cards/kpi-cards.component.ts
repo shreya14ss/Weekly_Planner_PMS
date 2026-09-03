@@ -21,7 +21,7 @@ interface KpiTile {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+    <div class="grid gap-2.5 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
       @for (tile of tiles; track tile.key) {
         <article
           class="kpi"
@@ -48,48 +48,48 @@ export class KpiCardsComponent {
       key: 'total',
       label: 'Total Projects',
       sub: 'in scope',
-      accent: '#334155',
-      tint: '#f1f5f9',
+      accent: 'var(--sev-neutral)',
+      tint: 'var(--sev-neutral-tint)',
       icon: 'pi-briefcase',
     },
     {
       key: 'active',
       label: 'Active',
       sub: 'in progress / testing',
-      accent: '#2563EB',
-      tint: '#eff6ff',
+      accent: 'var(--sev-active)',
+      tint: 'var(--sev-active-tint)',
       icon: 'pi-bolt',
     },
     {
       key: 'done',
       label: 'Completed',
       sub: 'done / handed over',
-      accent: '#059669',
-      tint: '#ecfdf5',
+      accent: 'var(--sev-done)',
+      tint: 'var(--sev-done-tint)',
       icon: 'pi-check-circle',
     },
     {
       key: 'hold',
       label: 'On Hold',
       sub: 'awaiting action',
-      accent: '#D97706',
-      tint: '#fffbeb',
+      accent: 'var(--sev-hold)',
+      tint: 'var(--sev-hold-tint)',
       icon: 'pi-pause-circle',
     },
     {
       key: 'delayed',
       label: 'Delayed',
       sub: 'past target date',
-      accent: '#DC2626',
-      tint: '#fef2f2',
+      accent: 'var(--sev-delayed)',
+      tint: 'var(--sev-delayed-tint)',
       icon: 'pi-exclamation-triangle',
     },
     {
       key: 'notFilled',
       label: 'Not Filled',
       sub: 'no updates this week',
-      accent: '#7C3AED',
-      tint: '#f5f3ff',
+      accent: 'var(--sev-notfilled)',
+      tint: 'var(--sev-notfilled-tint)',
       icon: 'pi-file-edit',
     },
   ];

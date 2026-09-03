@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 
-import { FollowUpRow, TrackKey } from '@features/dashboard/dashboard-aggregations';
+import { BlockerRow, FollowUpRow, TrackKey } from '@features/dashboard/dashboard-aggregations';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 
 /**
@@ -21,6 +21,7 @@ import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.
 })
 export class ProjectFollowUpComponent {
   readonly rows = input.required<FollowUpRow[]>();
+  readonly blockers = input<BlockerRow[]>([]);
   readonly open = output<string>();
 
   protected trackCls(key: TrackKey): string {
