@@ -49,6 +49,65 @@
   box-shadow: 0 2px 6px rgba(2, 8, 23, 0.06);
 }
 
+/* Product hero: Setpoint wordmark + "by RBH Solutions" sub-line */
+.login-hero {
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.login-wordmark {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0a1628;
+  line-height: 1;
+}
+
+.login-wordmark-dot {
+  color: #e8721a;
+  margin-left: 2px;
+  font-weight: 800;
+}
+
+.login-by-line {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #64748b;
+
+  b {
+    color: #334155;
+    font-weight: 700;
+  }
+}
+
+.login-tagline {
+  margin-top: 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.login-divider {
+  height: 1px;
+  margin: 1.25rem -0.25rem 1.25rem;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(15, 32, 64, 0.12) 20%,
+    rgba(15, 32, 64, 0.12) 80%,
+    transparent 100%
+  );
+}
+
 .pin-badge {
   display: inline-block;
   padding: 0 6px;

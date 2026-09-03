@@ -1,4 +1,4 @@
-# RBH Weekly SCADA Project Planner
+# Setpoint — RBH Weekly SCADA Project Tracker
 
 Rebuild of the RBH Solutions weekly project tracker as an offline-first Angular application. Replaces the legacy single-file HTML app (`Weekly_Planner_Fixed_21_3.html`, ~7,400 lines) with a proper, testable, scalable stack.
 

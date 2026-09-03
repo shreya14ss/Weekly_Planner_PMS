@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  appName: 'RBH Weekly Planner',
+  appName: 'Setpoint',
   couch: {
     localDbPrefix: 'rbh_wpr',
     remoteUrl: '',

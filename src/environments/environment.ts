@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  appName: 'RBH Weekly Planner',
+  appName: 'Setpoint',
   couch: {
     /**
      * Local PouchDB database name (IndexedDB). Persisted per browser.

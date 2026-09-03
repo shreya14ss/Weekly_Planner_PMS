@@ -10,7 +10,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "weekly-planner": {
+    "setpoint": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -80,13 +80,13 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "weekly-planner:build:production"
+              "buildTarget": "setpoint:build:production"
             },
             "development": {
-              "buildTarget": "weekly-planner:build:development"
+              "buildTarget": "setpoint:build:development"
             },
             "local": {
-              "buildTarget": "weekly-planner:build:local"
+              "buildTarget": "setpoint:build:local"
             }
           },
           "defaultConfiguration": "development"
