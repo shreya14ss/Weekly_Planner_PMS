@@ -11,6 +11,7 @@ import {
 } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
+import { MessageService } from 'primeng/api';
 
 import { routes } from './app.routes';
 import { provideAppSettings } from '@core/config/app-settings.providers';
@@ -43,5 +44,6 @@ export const appConfig: ApplicationConfig = {
       ripple: true,
     }),
     providePouchDb(),
+    MessageService,
   ],
 };

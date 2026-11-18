@@ -11,6 +11,18 @@
       (ngModelChange)="onNameChange($event)"
       [readonly]="!canEdit()"
     />
+    @if (canMoveToNextWeek()) {
+      <p-button
+        icon="pi pi-forward"
+        [rounded]="true"
+        [text]="true"
+        severity="info"
+        size="small"
+        pTooltip="Move to next week"
+        tooltipPosition="left"
+        (onClick)="onMoveToNextWeek()"
+      />
+    }
     @if (auth.isPM()) {
       <p-button
         icon="pi pi-times"

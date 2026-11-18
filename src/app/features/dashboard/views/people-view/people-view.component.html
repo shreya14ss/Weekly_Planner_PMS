@@ -1,0 +1,40 @@
+@if (loading()) {
+  <div class="skel skel-card mt-3"></div>
+  <div class="skel skel-card mt-3"></div>
+} @else {
+  <section class="dash-section mt-3">
+    <div class="section-head">
+      <h2 class="section-title"><i class="pi pi-users"></i> People</h2>
+      <span class="section-sub">Follow-up, engineer and TL performance</span>
+    </div>
+
+    <div class="flat-block mt-2">
+      <div class="block-head">
+        <h3 class="block-title"><i class="pi pi-list-check"></i> Who Needs Follow-Up?</h3>
+        <span class="block-sub">One row per project · all assigned members · click for details ›</span>
+      </div>
+      <app-project-follow-up
+        [rows]="state.followUpRows()"
+        [blockers]="state.blockers()"
+        (open)="state.openProject($event)"
+      />
+    </div>
+
+    <div class="flat-block mt-3">
+      <div class="block-head">
+        <h3 class="block-title">Engineer Performance</h3>
+      </div>
+      <app-engineer-performance [rows]="state.engineerRows()" />
+    </div>
+
+    <app-pending-tasks-bar class="mt-3" [alwaysShow]="true" />
+
+    <div class="flat-block mt-3">
+      <div class="block-head">
+        <h3 class="block-title"><i class="pi pi-chart-line"></i> TL / Engineer Performance &amp; Delay Trend</h3>
+        <span class="block-sub">Identify who has the most delayed or stuck tasks</span>
+      </div>
+      <app-tl-performance-cards [rows]="state.tlPerformance()" />
+    </div>
+  </section>
+}

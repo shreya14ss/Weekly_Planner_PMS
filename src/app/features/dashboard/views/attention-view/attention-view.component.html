@@ -1,0 +1,48 @@
+@if (loading()) {
+  <div class="skel skel-card mt-3"></div>
+  <div class="skel skel-card mt-3"></div>
+} @else {
+  <section class="dash-section mt-3">
+    <div class="section-head">
+      <h2 class="section-title"><i class="pi pi-flag-fill"></i> Attention</h2>
+      <span class="section-sub">Tasks and projects that need action this week</span>
+    </div>
+
+    <div class="flat-block mt-2">
+      <app-delayed-tasks-filter
+        [rows]="state.delayedTasks()"
+        (open)="state.openProject($event)"
+      />
+    </div>
+
+    <div class="flat-block mt-3">
+      <div class="block-head">
+        <h3 class="block-title"><i class="pi pi-calendar"></i> Weekly Schedule Tracker</h3>
+        <span class="block-sub">Per-project weekly target + task health</span>
+      </div>
+      <app-weekly-schedule-tracker
+        [rows]="state.trackerRows()"
+        [summary]="state.healthSummary()"
+      />
+    </div>
+
+    <div class="attention-row mt-3">
+      <div class="flat-block">
+        <app-attention-list
+          title="Delayed Projects"
+          titleColor="var(--sev-delayed)"
+          [items]="state.delayedList()"
+          (open)="state.openProject($event)"
+        />
+      </div>
+      <div class="flat-block">
+        <app-attention-list
+          title="On Hold Projects"
+          titleColor="var(--sev-hold)"
+          [items]="state.onHoldList()"
+          (open)="state.openProject($event)"
+        />
+      </div>
+    </div>
+  </section>
+}

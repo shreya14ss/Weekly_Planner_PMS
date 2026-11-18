@@ -1,0 +1,653 @@
+<div class="md-wrap">
+  <!-- Greeting -->
+  <header class="md-head">
+    <div>
+      <h1 class="md-title">{{ greeting() }}, {{ userName() }}</h1>
+      <p class="md-date">{{ todayLabel() }}</p>
+    </div>
+    <div class="md-summary">
+      <div class="md-chip md-chip--due">
+        <span class="md-chip-count">{{ dueTodayCount() }}</span>
+        <span class="md-chip-label">due today</span>
+      </div>
+      @if (overdueCount() > 0) {
+        <div class="md-chip md-chip--overdue">
+          <span class="md-chip-count">{{ overdueCount() }}</span>
+          <span class="md-chip-label">overdue</span>
+        </div>
+      }
+      @if (my.meetingsToday().length > 0) {
+        <div class="md-chip md-chip--meet">
+          <span class="md-chip-count">{{ my.meetingsToday().length }}</span>
+          <span class="md-chip-label">meetings</span>
+        </div>
+      }
+      @if (notifications.isEnabled()) {
+        <button
+          type="button"
+          class="md-sound-toggle"
+          [class.md-sound-toggle--off]="!notifications.soundEnabled()"
+          [title]="notifications.soundEnabled() ? 'Reminder sound ON' : 'Reminder sound OFF'"
+          (click)="toggleSound()"
+        >
+          <i class="pi" [class.pi-volume-up]="notifications.soundEnabled()" [class.pi-volume-off]="!notifications.soundEnabled()"></i>
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- Notification permission prompt -->
+  @if (notifications.canPrompt()) {
+    <div class="md-notice md-notice--prompt">
+      <i class="pi pi-bell"></i>
+      <div class="md-notice-body">
+        <strong>Get a ping when a reminder is due.</strong>
+        Timed reminders will pop a browser notification + chime at their time —
+        works even when Setpoint is in a background tab.
+      </div>
+      <p-button
+        label="Enable"
+        icon="pi pi-check"
+        severity="primary"
+        size="small"
+        (onClick)="enableNotifications()"
+      />
+    </div>
+  } @else if (notifications.permission() === 'denied') {
+    <div class="md-notice md-notice--muted">
+      <i class="pi pi-info-circle"></i>
+      <div class="md-notice-body">
+        Browser notifications are blocked. Timed reminders will still show
+        here, but no system popup will fire. Re-enable them in your browser
+        site settings if you change your mind.
+      </div>
+    </div>
+  }
+
+  <!-- Quick-add bar -->
+  <div class="md-quick">
+    <button
+      type="button"
+      class="md-quick-btn"
+      [class.md-quick-btn--active]="activeForm() === 'reminder'"
+      (click)="toggleForm('reminder')"
+    >
+      <i class="pi pi-bell"></i> Reminder
+    </button>
+    <button
+      type="button"
+      class="md-quick-btn"
+      [class.md-quick-btn--active]="activeForm() === 'todo'"
+      (click)="toggleForm('todo')"
+    >
+      <i class="pi pi-check-square"></i> To-do
+    </button>
+    <button
+      type="button"
+      class="md-quick-btn"
+      [class.md-quick-btn--active]="activeForm() === 'meeting'"
+      (click)="toggleForm('meeting')"
+    >
+      <i class="pi pi-calendar"></i> Meeting
+    </button>
+  </div>
+
+  <!-- Quick-add: Reminder -->
+  @if (activeForm() === 'reminder') {
+    <div class="md-form">
+      <input pInputText class="md-form-text" placeholder="What should I remind you about?"
+        [(ngModel)]="reminderDraft.text"
+        (keyup.enter)="saveReminder()" />
+      <input type="date" class="md-form-date" [(ngModel)]="reminderDraft.dueAt" />
+      <input type="time" class="md-form-time" title="Optional time" [(ngModel)]="reminderDraft.dueTime" />
+      <p-select class="md-form-rec"
+        [options]="recurrenceOptions" optionLabel="label" optionValue="value"
+        [(ngModel)]="reminderDraft.recurrence"
+        appendTo="body" />
+      @if (canDelegate()) {
+        <p-select class="md-form-rec"
+          [options]="assigneeOptions()" optionLabel="label" optionValue="value"
+          [(ngModel)]="reminderDraft.assignTo"
+          placeholder="Assign to…"
+          appendTo="body" />
+      }
+      <p-button label="Add" icon="pi pi-plus" severity="primary" size="small" (onClick)="saveReminder()" />
+      <p-button label="Cancel" severity="secondary" [text]="true" size="small" (onClick)="toggleForm(null)" />
+    </div>
+  }
+
+  <!-- Quick-add: Todo -->
+  @if (activeForm() === 'todo') {
+    <div class="md-form">
+      <input pInputText class="md-form-text" placeholder="What do you need to do?"
+        [(ngModel)]="todoDraft.text"
+        (keyup.enter)="saveTodo()" />
+      <input type="date" class="md-form-date" [(ngModel)]="todoDraft.dueAt" />
+      <p-select [options]="priorityOptions" optionLabel="label" optionValue="value"
+        [(ngModel)]="todoDraft.priority"
+        appendTo="body" />
+      <p-select class="md-form-rec"
+        [options]="recurrenceOptions" optionLabel="label" optionValue="value"
+        [(ngModel)]="todoDraft.recurrence"
+        appendTo="body" />
+      @if (canDelegate()) {
+        <p-select class="md-form-rec"
+          [options]="assigneeOptions()" optionLabel="label" optionValue="value"
+          [(ngModel)]="todoDraft.assignTo"
+          placeholder="Assign to…"
+          appendTo="body" />
+      }
+      <p-button label="Add" icon="pi pi-plus" severity="primary" size="small" (onClick)="saveTodo()" />
+      <p-button label="Cancel" severity="secondary" [text]="true" size="small" (onClick)="toggleForm(null)" />
+    </div>
+  }
+
+  <!-- Quick-add: Meeting -->
+  @if (activeForm() === 'meeting') {
+    <div class="md-form">
+      <input pInputText class="md-form-text" placeholder="Meeting title"
+        [(ngModel)]="meetingDraft.title"
+        (keyup.enter)="saveMeeting()" />
+      <input type="date" class="md-form-date" [(ngModel)]="meetingDraft.dateIso" />
+      <input type="time" class="md-form-time" [(ngModel)]="meetingDraft.startTime" />
+      <input type="number" pInputText class="md-form-num" min="5" step="5"
+        [(ngModel)]="meetingDraft.durationMin" />
+      <input pInputText class="md-form-text md-form-text--sm" placeholder="Location (optional)"
+        [(ngModel)]="meetingDraft.location" />
+      <p-button label="Add" icon="pi pi-plus" severity="primary" size="small" (onClick)="saveMeeting()" />
+      <p-button label="Cancel" severity="secondary" [text]="true" size="small" (onClick)="toggleForm(null)" />
+    </div>
+  }
+
+  <!-- Today's Meetings -->
+  @if (my.meetingsToday().length > 0) {
+    <section class="md-section">
+      <div class="md-section-head">
+        <h2 class="md-section-title"><i class="pi pi-calendar"></i> Today's Meetings</h2>
+      </div>
+      <div class="md-meetings">
+        @for (m of my.meetingsToday(); track m._id) {
+          @if (isEditingMeeting(m._id)) {
+            <div class="md-form md-form--inline">
+              <input pInputText class="md-form-text" placeholder="Meeting title"
+                [(ngModel)]="editMeetingDraft.title"
+                (keyup.enter)="saveEditMeeting(m)" />
+              <input type="date" class="md-form-date" [(ngModel)]="editMeetingDraft.dateIso" />
+              <input type="time" class="md-form-time" [(ngModel)]="editMeetingDraft.startTime" />
+              <input type="number" pInputText class="md-form-num" min="5" step="5"
+                [(ngModel)]="editMeetingDraft.durationMin" />
+              <input pInputText class="md-form-text md-form-text--sm" placeholder="Location (optional)"
+                [(ngModel)]="editMeetingDraft.location" />
+              <p-button label="Save" icon="pi pi-check" severity="primary" size="small" (onClick)="saveEditMeeting(m)" />
+              <p-button label="Cancel" severity="secondary" [text]="true" size="small" (onClick)="cancelEdit()" />
+            </div>
+          } @else {
+            <div class="md-meeting">
+              <div class="md-meeting-time">{{ formatMeetingTime(m) }}</div>
+              <div class="md-meeting-body">
+                <div class="md-meeting-title">{{ m.title }}</div>
+                @if (m.location) {
+                  <div class="md-meeting-loc"><i class="pi pi-map-marker"></i> {{ m.location }}</div>
+                }
+              </div>
+              <button type="button" class="md-icon-btn" title="Edit meeting" (click)="beginEditMeeting(m)">
+                <i class="pi pi-pencil"></i>
+              </button>
+              <button type="button" class="md-icon-btn md-icon-btn--danger" title="Delete meeting" (click)="deleteMeeting(m)">
+                <i class="pi pi-trash"></i>
+              </button>
+            </div>
+          }
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Due Today -->
+  <section class="md-section">
+    <div class="md-section-head">
+      <h2 class="md-section-title"><i class="pi pi-sun"></i> Due Today</h2>
+    </div>
+    @if (dueTodayCount() === 0) {
+      <div class="md-empty">
+        <i class="pi pi-check-circle"></i>
+        Nothing due today — all caught up.
+      </div>
+    } @else {
+      <ul class="md-list">
+        @for (row of my.projectTasksToday(); track row.projectId + row.task.id) {
+          <li class="md-row md-row--task">
+            <button type="button" class="md-check" title="Mark task completed" (click)="completeProjectTask(row)"></button>
+            <span class="md-row-proj" title="Project task"><i class="pi pi-briefcase"></i> Project</span>
+            <div class="md-row-body">
+              <div class="md-row-text">{{ row.task.name || 'Untitled task' }}</div>
+              <div class="md-row-meta">{{ row.client }} · {{ row.projectName }} · {{ taskStatusLabel(row) }}</div>
+            </div>
+            <button type="button" class="md-icon-btn" title="Open project" (click)="openProject(row)">
+              <i class="pi pi-external-link"></i>
+            </button>
+          </li>
+        }
+        @for (r of my.remindersToday(); track r._id) {
+          @if (isEditingReminder(r._id)) {
+            <li class="md-row md-row--editing">
+              <div class="md-form md-form--inline">
+                <input pInputText class="md-form-text"
+                  [(ngModel)]="editReminderDraft.text"
+                  (keyup.enter)="saveEditReminder(r)" />
+                <input type="date" class="md-form-date" [(ngModel)]="editReminderDraft.dueAt" />
+                <input type="time" class="md-form-time" title="Optional time" [(ngModel)]="editReminderDraft.dueTime" />
+                <p-select class="md-form-rec"
+                  [options]="recurrenceOptions" optionLabel="label" optionValue="value"
+                  [(ngModel)]="editReminderDraft.recurrence"
+                  appendTo="body" />
+                <p-button label="Save" icon="pi pi-check" severity="primary" size="small" (onClick)="saveEditReminder(r)" />
+                <p-button label="Cancel" severity="secondary" [text]="true" size="small" (onClick)="cancelEdit()" />
+              </div>
+            </li>
+          } @else {
+            <li class="md-row md-row--reminder">
+              <button type="button" class="md-check" title="Mark done" (click)="completeReminder(r)"></button>
+              @let rRecurrence = r.recurrence ?? r.sourceRecurrence; @if (rRecurrence && rRecurrence !== 'none') { <span class="md-row-rec" title="Recurring"><i class="pi pi-refresh"></i> {{ recurrenceLabel(rRecurrence) }}</span> } @if (r.assignedBy) { <span class="md-row-from" [title]="'Delegated by ' + assignedByName(r.assignedBy)"><i class="pi pi-user"></i> From {{ assignedByName(r.assignedBy) }}</span> }
+              @if (r.dueTime) { <span class="md-row-time">{{ r.dueTime }}</span> }
+              <div class="md-row-body">
+                <div class="md-row-text">{{ r.text }}</div>
+              </div>
+              <button type="button" class="md-icon-btn" title="Edit" (click)="beginEditReminder(r)">
+                <i class="pi pi-pencil"></i>
+              </button>
+              <button type="button" class="md-icon-btn" title="Snooze" (click)="openSnoozeForReminder($event, r)">
+                <i class="pi pi-clock"></i>
+              </button>
+              <button type="button" class="md-icon-btn md-icon-btn--danger" title="Delete" (click)="deleteReminder(r)">
+                <i class="pi pi-trash"></i>
+              </button>
+            </li>
+          }
+        }
+        @for (t of my.todosToday(); track t._id) {
+          @if (isEditingTodo(t._id)) {
+            <li class="md-row md-row--editing">
+              <div class="md-form md-form--inline">
+                <input pInputText class="md-form-text"
+                  [(ngModel)]="editTodoDraft.text"
+                  (keyup.enter)="saveEditTodo(t)" />
+                <input type="date" class="md-form-date" [(ngModel)]="editTodoDraft.dueAt" />
+                <p-select [options]="priorityOptions" optionLabel="label" optionValue="value"
+                  [(ngModel)]="editTodoDraft.priority"
+                  appendTo="body" />
+                <p-select class="md-form-rec"
+                  [options]="recurrenceOptions" optionLabel="label" optionValue="value"
+                  [(ngModel)]="editTodoDraft.recurrence"
+                  appendTo="body" />
+                <p-button label="Save" icon="pi pi-check" severity="primary" size="small" (onClick)="saveEditTodo(t)" />
+                <p-button label="Cancel" severity="secondary" [text]="true" size="small" (onClick)="cancelEdit()" />
+              </div>
+            </li>
+          } @else {
+            <li class="md-row md-row--todo" [class.md-row--high]="t.priority === 'high'">
+              <button type="button" class="md-check" title="Mark done" (click)="completeTodo(t)"></button>
+              @let tRecurrence = t.recurrence ?? t.sourceRecurrence; @if (tRecurrence && tRecurrence !== 'none') { <span class="md-row-rec" title="Recurring"><i class="pi pi-refresh"></i> {{ recurrenceLabel(tRecurrence) }}</span> } @if (t.assignedBy) { <span class="md-row-from" [title]="'Delegated by ' + assignedByName(t.assignedBy)"><i class="pi pi-user"></i> From {{ assignedByName(t.assignedBy) }}</span> }
+              <div class="md-row-body">
+                <div class="md-row-text">{{ t.text }}</div>
+                @if (t.priority && t.priority !== 'normal') {
+                  <div class="md-row-meta">Priority: {{ t.priority }}</div>
+                }
+              </div>
+              <button type="button" class="md-icon-btn" title="Edit" (click)="beginEditTodo(t)">
+                <i class="pi pi-pencil"></i>
+              </button>
+              <button type="button" class="md-icon-btn" title="Snooze" (click)="openSnoozeForTodo($event, t)">
+                <i class="pi pi-clock"></i>
+              </button>
+              <button type="button" class="md-icon-btn md-icon-btn--danger" title="Delete" (click)="deleteTodo(t)">
+                <i class="pi pi-trash"></i>
+              </button>
+            </li>
+          }
+        }
+      </ul>
+    }
+  </section>
+
+  <!-- Overdue (collapsible) -->
+  @if (overdueCount() > 0) {
+    <section class="md-section md-section--overdue">
+      <button type="button" class="md-section-toggle" (click)="toggleOverdue()">
+        <h2 class="md-section-title">
+          <i class="pi pi-exclamation-triangle"></i> Overdue · {{ overdueCount() }}
+        </h2>
+        <i class="pi" [class.pi-chevron-down]="!overdueExpanded()" [class.pi-chevron-up]="overdueExpanded()"></i>
+      </button>
+      @if (overdueExpanded()) {
+        <ul class="md-list">
+          @for (row of my.projectTasksOverdue(); track row.projectId + row.task.id) {
+            <li class="md-row md-row--task">
+              <button type="button" class="md-check" title="Mark task completed" (click)="completeProjectTask(row)"></button>
+              <span class="md-row-proj" title="Project task"><i class="pi pi-briefcase"></i> Project</span>
+              <div class="md-row-body">
+                <div class="md-row-text">{{ row.task.name || 'Untitled task' }}</div>
+                <div class="md-row-meta">
+                  {{ row.client }} · {{ row.projectName }} · {{ daysOverdueLabel(row.task.taskDueDate) }}
+                </div>
+              </div>
+              <button type="button" class="md-icon-btn" title="Open project" (click)="openProject(row)">
+                <i class="pi pi-external-link"></i>
+              </button>
+            </li>
+          }
+          @for (r of my.remindersOverdue(); track r._id) {
+            @if (isEditingReminder(r._id)) {
+              <li class="md-row md-row--editing">
+                <div class="md-form md-form--inline">
+                  <input pInputText class="md-form-text"
+                    [(ngModel)]="editReminderDraft.text"
+                    (keyup.enter)="saveEditReminder(r)" />
+                  <input type="date" class="md-form-date" [(ngModel)]="editReminderDraft.dueAt" />
+                  <input type="time" class="md-form-time" title="Optional time" [(ngModel)]="editReminderDraft.dueTime" />
+                  <p-select class="md-form-rec"
+                    [options]="recurrenceOptions" optionLabel="label" optionValue="value"
+                    [(ngModel)]="editReminderDraft.recurrence"
+                    appendTo="body" />
+                  <p-button label="Save" icon="pi pi-check" severity="primary" size="small" (onClick)="saveEditReminder(r)" />
+                  <p-button label="Cancel" severity="secondary" [text]="true" size="small" (onClick)="cancelEdit()" />
+                </div>
+              </li>
+            } @else {
+              <li class="md-row md-row--reminder">
+                <button type="button" class="md-check" title="Mark done" (click)="completeReminder(r)"></button>
+                @let rRecurrence = r.recurrence ?? r.sourceRecurrence; @if (rRecurrence && rRecurrence !== 'none') { <span class="md-row-rec" title="Recurring"><i class="pi pi-refresh"></i> {{ recurrenceLabel(rRecurrence) }}</span> } @if (r.assignedBy) { <span class="md-row-from" [title]="'Delegated by ' + assignedByName(r.assignedBy)"><i class="pi pi-user"></i> From {{ assignedByName(r.assignedBy) }}</span> }
+                @if (r.dueTime) { <span class="md-row-time">{{ r.dueTime }}</span> }
+                <div class="md-row-body">
+                  <div class="md-row-text">{{ r.text }}</div>
+                  <div class="md-row-meta">{{ daysOverdueLabel(r.dueAt) }}</div>
+                </div>
+                <button type="button" class="md-icon-btn" title="Edit" (click)="beginEditReminder(r)">
+                  <i class="pi pi-pencil"></i>
+                </button>
+                <button type="button" class="md-icon-btn" title="Snooze" (click)="openSnoozeForReminder($event, r)">
+                  <i class="pi pi-clock"></i>
+                </button>
+                <button type="button" class="md-icon-btn md-icon-btn--danger" title="Delete" (click)="deleteReminder(r)">
+                  <i class="pi pi-trash"></i>
+                </button>
+              </li>
+            }
+          }
+          @for (t of my.todosOverdue(); track t._id) {
+            @if (isEditingTodo(t._id)) {
+              <li class="md-row md-row--editing">
+                <div class="md-form md-form--inline">
+                  <input pInputText class="md-form-text"
+                    [(ngModel)]="editTodoDraft.text"
+                    (keyup.enter)="saveEditTodo(t)" />
+                  <input type="date" class="md-form-date" [(ngModel)]="editTodoDraft.dueAt" />
+                  <p-select [options]="priorityOptions" optionLabel="label" optionValue="value"
+                    [(ngModel)]="editTodoDraft.priority"
+                    appendTo="body" />
+                  <p-select class="md-form-rec"
+                    [options]="recurrenceOptions" optionLabel="label" optionValue="value"
+                    [(ngModel)]="editTodoDraft.recurrence"
+                    appendTo="body" />
+                  <p-button label="Save" icon="pi pi-check" severity="primary" size="small" (onClick)="saveEditTodo(t)" />
+                  <p-button label="Cancel" severity="secondary" [text]="true" size="small" (onClick)="cancelEdit()" />
+                </div>
+              </li>
+            } @else {
+              <li class="md-row md-row--todo" [class.md-row--high]="t.priority === 'high'">
+                <button type="button" class="md-check" title="Mark done" (click)="completeTodo(t)"></button>
+                @let tRecurrence = t.recurrence ?? t.sourceRecurrence; @if (tRecurrence && tRecurrence !== 'none') { <span class="md-row-rec" title="Recurring"><i class="pi pi-refresh"></i> {{ recurrenceLabel(tRecurrence) }}</span> } @if (t.assignedBy) { <span class="md-row-from" [title]="'Delegated by ' + assignedByName(t.assignedBy)"><i class="pi pi-user"></i> From {{ assignedByName(t.assignedBy) }}</span> }
+                <div class="md-row-body">
+                  <div class="md-row-text">{{ t.text }}</div>
+                  <div class="md-row-meta">{{ daysOverdueLabel(t.dueAt) }}</div>
+                </div>
+                <button type="button" class="md-icon-btn" title="Edit" (click)="beginEditTodo(t)">
+                  <i class="pi pi-pencil"></i>
+                </button>
+                <button type="button" class="md-icon-btn" title="Snooze" (click)="openSnoozeForTodo($event, t)">
+                  <i class="pi pi-clock"></i>
+                </button>
+                <button type="button" class="md-icon-btn md-icon-btn--danger" title="Delete" (click)="deleteTodo(t)">
+                  <i class="pi pi-trash"></i>
+                </button>
+              </li>
+            }
+          }
+        </ul>
+      }
+    </section>
+  }
+
+  <!-- Assigned project tasks for the rest of this week -->
+  @if (my.projectTasksThisWeek().length > 0) {
+    <section class="md-section">
+      <button type="button" class="md-section-toggle" (click)="toggleProjectTasks()">
+        <h2 class="md-section-title">
+          <i class="pi pi-briefcase"></i> My Project Tasks · This Week · {{ my.projectTasksThisWeek().length }}
+        </h2>
+        <i class="pi" [class.pi-chevron-down]="!projectTasksExpanded()" [class.pi-chevron-up]="projectTasksExpanded()"></i>
+      </button>
+      @if (projectTasksExpanded()) {
+        <ul class="md-list">
+          @for (row of my.projectTasksThisWeek(); track row.projectId + row.task.id) {
+            <li class="md-row md-row--task">
+              <button type="button" class="md-check" title="Mark task completed" (click)="completeProjectTask(row)"></button>
+              <div class="md-row-body">
+                <div class="md-row-text">{{ row.task.name || 'Untitled task' }}</div>
+                <div class="md-row-meta">
+                  {{ row.client }} · {{ row.projectName }} · {{ taskStatusLabel(row) }}
+                  @if (row.task.taskDueDate) { · Due {{ formatDate(row.task.taskDueDate) }} }
+                </div>
+              </div>
+              <button type="button" class="md-icon-btn" title="Open project" (click)="openProject(row)">
+                <i class="pi pi-external-link"></i>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+
+  <!-- Inbox (undated todos) -->
+  @if (my.todosInbox().length > 0) {
+    <section class="md-section">
+      <button type="button" class="md-section-toggle" (click)="toggleInbox()">
+        <h2 class="md-section-title">
+          <i class="pi pi-inbox"></i> Inbox · {{ my.todosInbox().length }}
+        </h2>
+        <i class="pi" [class.pi-chevron-down]="!inboxExpanded()" [class.pi-chevron-up]="inboxExpanded()"></i>
+      </button>
+      @if (inboxExpanded()) {
+        <ul class="md-list">
+          @for (t of my.todosInbox(); track t._id) {
+            @if (isEditingTodo(t._id)) {
+              <li class="md-row md-row--editing">
+                <div class="md-form md-form--inline">
+                  <input pInputText class="md-form-text"
+                    [(ngModel)]="editTodoDraft.text"
+                    (keyup.enter)="saveEditTodo(t)" />
+                  <input type="date" class="md-form-date" [(ngModel)]="editTodoDraft.dueAt" />
+                  <p-select [options]="priorityOptions" optionLabel="label" optionValue="value"
+                    [(ngModel)]="editTodoDraft.priority"
+                    appendTo="body" />
+                  <p-select class="md-form-rec"
+                    [options]="recurrenceOptions" optionLabel="label" optionValue="value"
+                    [(ngModel)]="editTodoDraft.recurrence"
+                    appendTo="body" />
+                  <p-button label="Save" icon="pi pi-check" severity="primary" size="small" (onClick)="saveEditTodo(t)" />
+                  <p-button label="Cancel" severity="secondary" [text]="true" size="small" (onClick)="cancelEdit()" />
+                </div>
+              </li>
+            } @else {
+              <li class="md-row md-row--todo" [class.md-row--high]="t.priority === 'high'">
+                <button type="button" class="md-check" title="Mark done" (click)="completeTodo(t)"></button>
+                @let tRecurrence = t.recurrence ?? t.sourceRecurrence; @if (tRecurrence && tRecurrence !== 'none') { <span class="md-row-rec" title="Recurring"><i class="pi pi-refresh"></i> {{ recurrenceLabel(tRecurrence) }}</span> } @if (t.assignedBy) { <span class="md-row-from" [title]="'Delegated by ' + assignedByName(t.assignedBy)"><i class="pi pi-user"></i> From {{ assignedByName(t.assignedBy) }}</span> }
+                <div class="md-row-body">
+                  <div class="md-row-text">{{ t.text }}</div>
+                  @if (t.priority && t.priority !== 'normal') {
+                    <div class="md-row-meta">Priority: {{ t.priority }}</div>
+                  }
+                </div>
+                <button type="button" class="md-icon-btn" title="Edit" (click)="beginEditTodo(t)">
+                  <i class="pi pi-pencil"></i>
+                </button>
+                <button type="button" class="md-icon-btn md-icon-btn--danger" title="Delete" (click)="deleteTodo(t)">
+                  <i class="pi pi-trash"></i>
+                </button>
+              </li>
+            }
+          }
+        </ul>
+      }
+    </section>
+  }
+
+  <!-- Caught up today (collapsible) -->
+  @if (my.caughtUpCount() > 0) {
+    <section class="md-section md-section--muted">
+      <button type="button" class="md-section-toggle" (click)="toggleCaughtUp()">
+        <h2 class="md-section-title">
+          <i class="pi pi-check-circle"></i> Caught up today · {{ my.caughtUpCount() }}
+        </h2>
+        <i class="pi" [class.pi-chevron-down]="!caughtUpExpanded()" [class.pi-chevron-up]="caughtUpExpanded()"></i>
+      </button>
+      @if (caughtUpExpanded()) {
+        <ul class="md-list">
+          @for (m of my.meetingsPastToday(); track m._id) {
+            <li class="md-row md-row--done md-row--past-meet">
+                            <span class="md-row-time">{{ m.startTime }}</span>
+              <div class="md-row-body">
+                <div class="md-row-text">{{ m.title }}</div>
+                @if (m.location) {
+                  <div class="md-row-meta"><i class="pi pi-map-marker"></i> {{ m.location }}</div>
+                }
+              </div>
+              <button type="button" class="md-icon-btn md-icon-btn--danger" title="Delete" (click)="deleteMeeting(m)">
+                <i class="pi pi-trash"></i>
+              </button>
+            </li>
+          }
+          @for (r of my.remindersDoneToday(); track r._id) {
+            <li class="md-row md-row--done">
+              <span class="md-check md-check--done" title="Done"><i class="pi pi-check"></i></span>
+              @let rRec = r.recurrence ?? r.sourceRecurrence;
+              @if (rRec && rRec !== 'none') { <span class="md-row-rec" title="From a recurring series"><i class="pi pi-refresh"></i> {{ recurrenceLabel(rRec) }}</span> }
+              <div class="md-row-body">
+                <div class="md-row-text md-row-text--strike">{{ r.text }}</div>
+              </div>
+              <button type="button" class="md-icon-btn" title="Reopen" (click)="reopenReminder(r)">
+                <i class="pi pi-refresh"></i>
+              </button>
+              <button type="button" class="md-icon-btn md-icon-btn--danger" title="Delete" (click)="deleteReminder(r)">
+                <i class="pi pi-trash"></i>
+              </button>
+            </li>
+          }
+          @for (t of my.todosDoneToday(); track t._id) {
+            <li class="md-row md-row--done">
+              <span class="md-check md-check--done" title="Done"><i class="pi pi-check"></i></span>
+              @let tRec = t.recurrence ?? t.sourceRecurrence;
+              @if (tRec && tRec !== 'none') { <span class="md-row-rec" title="From a recurring series"><i class="pi pi-refresh"></i> {{ recurrenceLabel(tRec) }}</span> }
+              <div class="md-row-body">
+                <div class="md-row-text md-row-text--strike">{{ t.text }}</div>
+              </div>
+              <button type="button" class="md-icon-btn" title="Reopen" (click)="reopenTodo(t)">
+                <i class="pi pi-refresh"></i>
+              </button>
+              <button type="button" class="md-icon-btn md-icon-btn--danger" title="Delete" (click)="deleteTodo(t)">
+                <i class="pi pi-trash"></i>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+
+  <!-- Upcoming -->
+  @if (my.remindersUpcoming().length > 0 || my.meetingsUpcoming().length > 0) {
+    <section class="md-section md-section--muted">
+      <div class="md-section-head">
+        <h2 class="md-section-title"><i class="pi pi-forward"></i> Upcoming</h2>
+      </div>
+      <ul class="md-list">
+        @for (m of my.meetingsUpcoming(); track m._id) {
+          <li class="md-row md-row--upcoming">
+                        <div class="md-row-body">
+              <div class="md-row-text">{{ m.title }}</div>
+              <div class="md-row-meta">{{ formatDate(m.dateIso) }} · {{ m.startTime }}</div>
+            </div>
+            <button type="button" class="md-icon-btn" title="Edit" (click)="beginEditMeeting(m)">
+              <i class="pi pi-pencil"></i>
+            </button>
+          </li>
+        }
+        @for (r of my.remindersUpcoming(); track r._id) {
+          <li class="md-row md-row--upcoming">
+            @let rRecurrence = r.recurrence ?? r.sourceRecurrence; @if (rRecurrence && rRecurrence !== 'none') { <span class="md-row-rec" title="Recurring"><i class="pi pi-refresh"></i> {{ recurrenceLabel(rRecurrence) }}</span> } @if (r.assignedBy) { <span class="md-row-from" [title]="'Delegated by ' + assignedByName(r.assignedBy)"><i class="pi pi-user"></i> From {{ assignedByName(r.assignedBy) }}</span> }
+            @if (r.dueTime) { <span class="md-row-time">{{ r.dueTime }}</span> }
+            <div class="md-row-body">
+              <div class="md-row-text">{{ r.text }}</div>
+              <div class="md-row-meta">
+                {{ formatDate(r.dueAt) }}@if (r.dueTime) { · {{ r.dueTime }} }
+              </div>
+            </div>
+            <button type="button" class="md-icon-btn" title="Edit" (click)="beginEditReminder(r)">
+              <i class="pi pi-pencil"></i>
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <!-- Shared snooze menu — content varies by snoozeTarget().kind. -->
+  <p-popover #snoozeMenu [dismissable]="true" appendTo="body" styleClass="md-snooze-pop">
+    @let target = snoozeTarget();
+    <div class="md-snooze">
+      <div class="md-snooze-head">Snooze to…</div>
+      <ul class="md-snooze-list">
+        @if (target?.kind === 'reminder') {
+          <li>
+            <button type="button" class="md-snooze-item" (click)="snoozeLaterToday()">
+              <i class="pi pi-clock"></i>
+              <span>Later today</span>
+              <span class="md-snooze-sub">+2 hours</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="md-snooze-item" (click)="snoozeThisEvening()">
+              <i class="pi pi-moon"></i>
+              <span>This evening</span>
+              <span class="md-snooze-sub">Today, 6pm</span>
+            </button>
+          </li>
+        }
+        <li>
+          <button type="button" class="md-snooze-item" (click)="snoozeTomorrow()">
+            <i class="pi pi-sun"></i>
+            <span>Tomorrow</span>
+            <span class="md-snooze-sub">
+              @if (target?.kind === 'reminder') { 9am } @else { Next day }
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="md-snooze-item" (click)="snoozeThisWeekend()">
+            <i class="pi pi-calendar"></i>
+            <span>This weekend</span>
+            <span class="md-snooze-sub">Saturday</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="md-snooze-item" (click)="snoozeNextWeek()">
+            <i class="pi pi-forward"></i>
+            <span>Next week</span>
+            <span class="md-snooze-sub">Monday</span>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </p-popover>
+</div>

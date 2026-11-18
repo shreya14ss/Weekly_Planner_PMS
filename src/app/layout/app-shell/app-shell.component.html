@@ -91,30 +91,37 @@
     <nav class="app-nav border-t border-white/5">
       <div class="flex gap-1 flex-wrap px-6 w-full">
       <a
+        routerLink="/app/my-day"
+        routerLinkActive="text-white tab-active-accent"
+        class="px-4 py-2.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/5 border-b-[3px] border-transparent transition flex items-center gap-2"
+      >
+        <i class="pi pi-sun"></i> My Day
+      </a>
+      <a
         routerLink="/app/dashboard"
         routerLinkActive="text-white tab-active-accent"
-        class="px-4 py-2.5 text-sm font-semibold text-white/60 hover:text-white border-b-[3px] border-transparent transition flex items-center gap-2"
+        class="px-4 py-2.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/5 border-b-[3px] border-transparent transition flex items-center gap-2"
       >
         <i class="pi pi-chart-bar"></i> Dashboard
       </a>
       <a
         routerLink="/app/projects"
         routerLinkActive="text-white tab-active-accent"
-        class="px-4 py-2.5 text-sm font-semibold text-white/60 hover:text-white border-b-[3px] border-transparent transition flex items-center gap-2"
+        class="px-4 py-2.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/5 border-b-[3px] border-transparent transition flex items-center gap-2"
       >
         <i class="pi pi-briefcase"></i> Projects
       </a>
       <a
         routerLink="/app/alerts"
         routerLinkActive="text-white tab-active-accent"
-        class="px-4 py-2.5 text-sm font-semibold text-white/60 hover:text-white border-b-[3px] border-transparent transition flex items-center gap-2"
+        class="px-4 py-2.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/5 border-b-[3px] border-transparent transition flex items-center gap-2"
       >
         <i class="pi pi-bell"></i> Alerts
       </a>
       <a
         routerLink="/app/completed"
         routerLinkActive="text-white tab-active-accent"
-        class="px-4 py-2.5 text-sm font-semibold text-white/60 hover:text-white border-b-[3px] border-transparent transition flex items-center gap-2"
+        class="px-4 py-2.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/5 border-b-[3px] border-transparent transition flex items-center gap-2"
       >
         <i class="pi pi-check-circle"></i> Completed
       </a>
@@ -122,7 +129,7 @@
         <a
           routerLink="/app/users"
           routerLinkActive="text-white tab-active-accent"
-          class="px-4 py-2.5 text-sm font-semibold text-white/60 hover:text-white border-b-[3px] border-transparent transition flex items-center gap-2"
+          class="px-4 py-2.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/5 border-b-[3px] border-transparent transition flex items-center gap-2"
         >
           <i class="pi pi-users"></i> Users
         </a>
@@ -131,7 +138,7 @@
         <a
           routerLink="/app/history"
           routerLinkActive="text-white tab-active-accent"
-          class="px-4 py-2.5 text-sm font-semibold text-white/60 hover:text-white border-b-[3px] border-transparent transition flex items-center gap-2"
+          class="px-4 py-2.5 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/5 border-b-[3px] border-transparent transition flex items-center gap-2"
         >
           <i class="pi pi-history"></i> History
         </a>
@@ -164,4 +171,8 @@
 
   <!-- Global Recovery / week-history dialog -->
   <app-recovery-dialog [(visible)]="actions.recoveryOpen" />
+
+  <!-- Global toast — used by auto-carry notice and anything else that
+       wants to raise a transient message via MessageService. -->
+  <p-toast position="bottom-right" [breakpoints]="{ '640px': { width: '100%', right: '0', left: '0' } }" />
 </div>

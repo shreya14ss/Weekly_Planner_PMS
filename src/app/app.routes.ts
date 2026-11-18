@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard, guestGuard, roleGuard } from '@core/guards/auth.guard';
+import { DashboardStateService } from '@features/dashboard/dashboard-state.service';
 
 export const routes: Routes = [
   {
@@ -15,13 +16,52 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./layout/app-shell/app-shell.component').then((m) => m.AppShellComponent),
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      { path: '', pathMatch: 'full', redirectTo: 'my-day' },
+      {
+        path: 'my-day',
+        loadComponent: () =>
+          import('@features/my-day/my-day-page/my-day-page.component').then(
+            (m) => m.MyDayPageComponent,
+          ),
+      },
       {
         path: 'dashboard',
         loadComponent: () =>
           import('@features/dashboard/dashboard-page/dashboard-page.component').then(
             (m) => m.DashboardPageComponent,
           ),
+        providers: [DashboardStateService],
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'overview' },
+          {
+            path: 'overview',
+            loadComponent: () =>
+              import(
+                '@features/dashboard/views/overview-view/overview-view.component'
+              ).then((m) => m.OverviewViewComponent),
+          },
+          {
+            path: 'attention',
+            loadComponent: () =>
+              import(
+                '@features/dashboard/views/attention-view/attention-view.component'
+              ).then((m) => m.AttentionViewComponent),
+          },
+          {
+            path: 'analytics',
+            loadComponent: () =>
+              import(
+                '@features/dashboard/views/analytics-view/analytics-view.component'
+              ).then((m) => m.AnalyticsViewComponent),
+          },
+          {
+            path: 'people',
+            loadComponent: () =>
+              import(
+                '@features/dashboard/views/people-view/people-view.component'
+              ).then((m) => m.PeopleViewComponent),
+          },
+        ],
       },
       {
         path: 'projects',

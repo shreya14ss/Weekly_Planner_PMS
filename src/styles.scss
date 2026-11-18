@@ -183,3 +183,69 @@ body {
     background: transparent;
   }
 }
+
+/*
+ * My Day — snooze popover.
+ * Needs to live globally because PrimeNG's popover uses `appendTo="body"`,
+ * which moves the content out of the component's view-encapsulation scope.
+ */
+.md-snooze-pop {
+  .md-snooze {
+    min-width: 220px;
+    padding: 6px 0;
+  }
+
+  .md-snooze-head {
+    padding: 4px 14px 8px;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 4px;
+  }
+
+  .md-snooze-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .md-snooze-item {
+    display: grid;
+    grid-template-columns: 18px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 9px 14px;
+    background: transparent;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 13px;
+    color: #0f172a;
+    transition: background 0.1s ease;
+
+    > i {
+      color: #64748b;
+      font-size: 13px;
+      justify-self: center;
+    }
+
+    &:hover {
+      background: #f1f5f9;
+
+      > i { color: var(--shell-accent); }
+    }
+  }
+
+  .md-snooze-sub {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+}

@@ -59,16 +59,15 @@
   <!-- Mini-nav + priority strip in a single sticky row -->
   <div class="nav-row">
     <nav class="mini-nav" aria-label="Dashboard sections">
-      @for (tab of tabs; track tab.id) {
-        <button
-          type="button"
+      @for (tab of tabs; track tab.path) {
+        <a
           class="mini-tab"
-          [class.mini-tab--active]="activeTab() === tab.id"
-          (click)="jumpTo(tab.id)"
+          [routerLink]="tab.path"
+          routerLinkActive="mini-tab--active"
         >
           <i class="pi" [class]="tab.icon" aria-hidden="true"></i>
           {{ tab.label }}
-        </button>
+        </a>
       }
     </nav>
     @if (!loading()) {
@@ -83,155 +82,11 @@
   </div>
 </div>
 
-@if (loading()) {
-  <!-- Skeleton: matches the KPI row footprint so the layout doesn't jump. -->
-  <section class="mt-3 skel-kpis">
-    @for (i of skeletonKpis; track i) {
-      <div class="skel skel-tile"></div>
-    }
-  </section>
-  <div class="skel skel-strip mt-3"></div>
-  <div class="skel skel-card mt-3"></div>
-  <div class="skel skel-card mt-3"></div>
-} @else {
-  <!-- OVERVIEW: KPI row -->
-  <section id="sec-overview" #section class="mt-3">
-    <app-kpi-cards [kpis]="kpis()" />
-  </section>
+<router-outlet />
 
-  <!-- ATTENTION: the operational tables -->
-  <section id="sec-attention" #section class="dash-section mt-4">
-    <div class="section-head">
-      <h2 class="section-title"><i class="pi pi-flag-fill"></i> Attention</h2>
-      <span class="section-sub">Tasks and projects that need action this week</span>
-    </div>
-
-    <div class="flat-block mt-2">
-      <app-delayed-tasks-filter
-        [rows]="delayedTasks()"
-        (open)="openProject($event)"
-      />
-    </div>
-
-    <div class="flat-block mt-3">
-      <div class="block-head">
-        <h3 class="block-title"><i class="pi pi-calendar"></i> Weekly Schedule Tracker</h3>
-        <span class="block-sub">Per-project weekly target + task health</span>
-      </div>
-      <app-weekly-schedule-tracker
-        [rows]="trackerRows()"
-        [summary]="healthSummary()"
-      />
-    </div>
-
-    <div class="attention-row mt-3">
-      <div class="flat-block">
-        <app-attention-list
-          title="Delayed Projects"
-          titleColor="var(--sev-delayed)"
-          [items]="delayedList()"
-          (open)="openProject($event)"
-        />
-      </div>
-      <div class="flat-block">
-        <app-attention-list
-          title="On Hold Projects"
-          titleColor="var(--sev-hold)"
-          [items]="onHoldList()"
-          (open)="openProject($event)"
-        />
-      </div>
-    </div>
-  </section>
-
-  <!-- ANALYTICS: aggregate views + charts -->
-  <section id="sec-analytics" #section class="dash-section mt-4">
-    <div class="section-head">
-      <h2 class="section-title"><i class="pi pi-chart-pie"></i> Analytics</h2>
-      <span class="section-sub">Portfolio distributions and weekly trends</span>
-    </div>
-
-    <div class="flat-block mt-2">
-      <div class="block-head">
-        <h3 class="block-title">Project Task Status Breakdown</h3>
-      </div>
-      <app-project-task-breakdown
-        [rows]="projectTaskBreakdown()"
-        (open)="openProject($event)"
-      />
-    </div>
-
-    <!--
-      Status Distribution card — hidden for now (donut wasn't earning
-      its space when 47/48 projects are "Not Set"). Kept commented so
-      it can be flipped back on later without redoing the wiring.
-
-    <div class="flat-block mt-3">
-      <div class="block-head">
-        <h3 class="block-title">Status Distribution</h3>
-      </div>
-      <app-status-donut
-        [segments]="statusSegments()"
-        [activeStatus]="filter.status()"
-        (filter)="applyStatusLabelFilter($event)"
-      />
-    </div>
-    -->
-
-    <div class="flat-block mt-3">
-      <div class="block-head">
-        <h3 class="block-title">Projects by Client</h3>
-      </div>
-      <app-client-bars [bars]="clientBars()" />
-    </div>
-
-    <div class="flat-block mt-3">
-      <app-weekly-trend-chart />
-    </div>
-  </section>
-
-  <!-- PEOPLE: follow-up & performance -->
-  <section id="sec-people" #section class="dash-section mt-4">
-    <div class="section-head">
-      <h2 class="section-title"><i class="pi pi-users"></i> People</h2>
-      <span class="section-sub">Follow-up, engineer and TL performance</span>
-    </div>
-
-    <div class="flat-block mt-2">
-      <div class="block-head">
-        <h3 class="block-title"><i class="pi pi-list-check"></i> Who Needs Follow-Up?</h3>
-        <span class="block-sub">One row per project · all assigned members · click for details ›</span>
-      </div>
-      <app-project-follow-up
-        [rows]="followUpRows()"
-        [blockers]="blockers()"
-        (open)="openProject($event)"
-      />
-    </div>
-
-    <div class="flat-block mt-3">
-      <div class="block-head">
-        <h3 class="block-title">Engineer Performance</h3>
-      </div>
-      <app-engineer-performance [rows]="engineerRows()" />
-    </div>
-
-    <app-pending-tasks-bar class="mt-3" [alwaysShow]="true" />
-
-    <div class="flat-block mt-3">
-      <div class="block-head">
-        <h3 class="block-title"><i class="pi pi-chart-line"></i> TL / Engineer Performance &amp; Delay Trend</h3>
-        <span class="block-sub">Identify who has the most delayed or stuck tasks</span>
-      </div>
-      <app-tl-performance-cards [rows]="tlPerformance()" />
-    </div>
-  </section>
-}
-
-<!-- Shared project-detail modal — every row's `open` event pops this. -->
+<!-- Shared project-detail modal — every view's `openProject` call pops this. -->
 <app-project-detail-modal
-  [(visible)]="detailOpen"
-  [projectId]="detailProjectId()"
+  [(visible)]="state.detailOpen"
+  [projectId]="state.detailProjectId()"
   (open)="navigateToProject($event)"
 />
-

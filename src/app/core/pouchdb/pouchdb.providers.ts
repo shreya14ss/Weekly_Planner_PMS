@@ -3,6 +3,9 @@ import { provideAppInitializer, inject, EnvironmentProviders } from '@angular/co
 import { DatabaseService } from './database.service';
 import { UserRepository } from './user.repository';
 import { ProjectRepository } from './project.repository';
+import { ReminderRepository } from './reminder.repository';
+import { MeetingRepository } from './meeting.repository';
+import { TodoRepository } from './todo.repository';
 import { WeekStateService } from '@core/services/week-state.service';
 import { ThemeService } from '@core/theme/theme.service';
 
@@ -18,13 +21,22 @@ export function providePouchDb(): EnvironmentProviders {
     const db = inject(DatabaseService);
     const users = inject(UserRepository);
     const projects = inject(ProjectRepository);
+    const reminders = inject(ReminderRepository);
+    const meetings = inject(MeetingRepository);
+    const todos = inject(TodoRepository);
     const weekState = inject(WeekStateService);
     const theme = inject(ThemeService);
 
     theme.init();
 
     await db.init();
-    await Promise.all([users.init(), projects.init()]);
+    await Promise.all([
+      users.init(),
+      projects.init(),
+      reminders.init(),
+      meetings.init(),
+      todos.init(),
+    ]);
     await weekState.init();
   });
 }

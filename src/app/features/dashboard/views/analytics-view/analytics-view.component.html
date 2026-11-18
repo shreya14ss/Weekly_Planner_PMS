@@ -1,0 +1,32 @@
+@if (loading()) {
+  <div class="skel skel-card mt-3"></div>
+  <div class="skel skel-card mt-3"></div>
+} @else {
+  <section class="dash-section mt-3">
+    <div class="section-head">
+      <h2 class="section-title"><i class="pi pi-chart-pie"></i> Analytics</h2>
+      <span class="section-sub">Portfolio distributions and weekly trends</span>
+    </div>
+
+    <div class="flat-block mt-2">
+      <div class="block-head">
+        <h3 class="block-title">Project Task Status Breakdown</h3>
+      </div>
+      <app-project-task-breakdown
+        [rows]="state.projectTaskBreakdown()"
+        (open)="state.openProject($event)"
+      />
+    </div>
+
+    <div class="flat-block mt-3">
+      <div class="block-head">
+        <h3 class="block-title">Projects by Client</h3>
+      </div>
+      <app-client-bars [bars]="state.clientBars()" />
+    </div>
+
+    <div class="flat-block mt-3">
+      <app-weekly-trend-chart />
+    </div>
+  </section>
+}

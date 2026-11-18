@@ -1,14 +1,18 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { MenubarModule } from 'primeng/menubar';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { MessageService } from 'primeng/api';
 
 import { AuthService } from '@core/services/auth.service';
 import { AppActionsService } from '@core/services/app-actions.service';
+import { WeekStateService } from '@core/services/week-state.service';
+import { MyDayNotificationService } from '@features/my-day/my-day-notification.service';
 // Sync status pill parked — see app-shell.component.html.
 // import { DatabaseService } from '@core/pouchdb/database.service';
 import { UserRepository } from '@core/pouchdb/user.repository';
@@ -30,6 +34,7 @@ import { RecoveryDialogComponent } from '@layout/recovery-dialog/recovery-dialog
     AvatarModule,
     ButtonModule,
     TagModule,
+    ToastModule,
     TooltipModule,
     WeekNavComponent,
     UserFormModalComponent,
@@ -45,7 +50,54 @@ export class AppShellComponent {
   private readonly auth = inject(AuthService);
   // private readonly db = inject(DatabaseService);
   private readonly users = inject(UserRepository);
+  private readonly weekState = inject(WeekStateService);
+  private readonly messages = inject(MessageService);
   protected readonly actions = inject(AppActionsService);
+  // Eager inject so timed-reminder + meeting notifications are scheduled
+  // app-wide, not just when the user visits /app/my-day.
+  private readonly myDayNotifications = inject(MyDayNotificationService);
+
+  /** Guard against running auto-carry more than once per session even
+   *  if the auth state briefly flickers during startup. */
+  private autoCarryRan = false;
+
+  constructor() {
+    // Auto-carry past-week pending tasks into the current week on the
+    // first session where a PM/TL is signed in. Role-gated — only PM /
+    // TL are authorised to carry (same gate as the Pending Tasks Bar).
+    effect(() => {
+      const user = this.auth.currentUser();
+      if (!user) return;
+      if (user.role !== 'pm' && user.role !== 'tl') return;
+      if (this.autoCarryRan) return;
+      this.autoCarryRan = true;
+      void this.runAutoCarry();
+    });
+  }
+
+  private async runAutoCarry(): Promise<void> {
+    try {
+      const count = await this.weekState.autoCarryPending();
+      if (count > 0) {
+        this.messages.add({
+          severity: 'info',
+          summary: 'Tasks carried forward',
+          detail: `${count} incomplete task${count === 1 ? '' : 's'} from previous weeks moved into this week.`,
+          life: 6000,
+        });
+      }
+    } catch (err) {
+      // Non-fatal — the user can still carry manually via the Pending
+      // Tasks Bar. Surface it so a silent failure isn't invisible.
+      console.error('[auto-carry]', err);
+      this.messages.add({
+        severity: 'warn',
+        summary: 'Auto-carry skipped',
+        detail: 'Some pending tasks could not be moved automatically. Use the Pending Tasks bar to carry them manually.',
+        life: 8000,
+      });
+    }
+  }
 
   readonly user = this.auth.currentUser;
   readonly isPM = this.auth.isPM;

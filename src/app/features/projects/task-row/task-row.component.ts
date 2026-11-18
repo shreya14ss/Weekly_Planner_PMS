@@ -103,6 +103,20 @@ export class TaskRowComponent {
     return origin ? formatWeekRange(origin) : '';
   });
 
+  /**
+   * "Move → next week" is only offered when:
+   *   - the viewer can manage tasks (PM/TL)
+   *   - the task isn't already completed
+   *   - we're viewing the current week (otherwise "next week" is ambiguous
+   *     — the Pending Tasks Bar handles carrying from historical weeks).
+   */
+  protected readonly canMoveToNextWeek = computed(
+    () =>
+      this.canManage() &&
+      this.task().status !== 'completed' &&
+      this.state.isCurrentWeek(),
+  );
+
   onNameChange(v: string): void {
     if (!this.canEdit()) return;
     this.state.updateTask(this.project()._id, this.task().id, { name: v });
@@ -134,6 +148,36 @@ export class TaskRowComponent {
     if (!this.canEdit()) return;
     const iso = saturdayOf(addWeeks(this.state.loadedWeek(), weeksAhead));
     this.state.updateTask(this.project()._id, this.task().id, { taskDueDate: iso });
+  }
+
+  /**
+   * Carry this task into next week and remove it from the current week.
+   * Three steps, intentionally autosaved as one unit:
+   *
+   *   1. `carryTask` copies the task into next week (direct repo write —
+   *      not the dirty flow, since next week isn't the loaded one).
+   *   2. `removeTask` strips it from the current week via `mutateTasks`
+   *      (dirty-tracked local mutation).
+   *   3. `saveProject` persists the current-week entry so the removal
+   *      isn't lost on discard.
+   *
+   * The explicit save here breaks from the usual "edit → save button"
+   * flow, but a move is a deliberate commit-level action and leaving it
+   * half-persisted (next-week copy saved, current-week removal dirty)
+   * creates a window where discarding duplicates the task.
+   */
+  async onMoveToNextWeek(): Promise<void> {
+    if (!this.canMoveToNextWeek()) return;
+    const t = this.task();
+    const projectId = this.project()._id;
+    const projectName = this.project().name;
+    const current = this.state.loadedWeek();
+    const next = addWeeks(current, 1);
+
+    await this.state.carryTask(current, projectId, t.id, next);
+    this.state.removeTask(projectId, t.id, projectName);
+    await this.state.saveProject(projectId, projectName);
+    this.removed.emit(t.id);
   }
 
   onRemove(): void {

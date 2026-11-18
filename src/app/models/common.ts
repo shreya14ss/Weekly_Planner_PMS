@@ -11,7 +11,15 @@ export interface BaseDoc {
   updatedAt: string; // ISO
 }
 
-export type DocType = 'project' | 'user' | 'week' | 'audit' | 'settings';
+export type DocType =
+  | 'project'
+  | 'user'
+  | 'week'
+  | 'audit'
+  | 'settings'
+  | 'reminder'
+  | 'meeting'
+  | 'todo';
 
 /** ISO date string YYYY-MM-DD (always Monday for week keys). */
 export type IsoDate = string;

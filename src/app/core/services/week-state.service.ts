@@ -273,6 +273,47 @@ export class WeekStateService {
   }
 
   /**
+   * Scan the N most-recent weeks before *today's* current week and carry
+   * every incomplete, not-yet-carried task into the current week. Safe
+   * to re-run — items already carried are skipped via the same
+   * `carriedFrom` dedup used by `loadPending`.
+   *
+   * Returns the number of tasks moved. Caller decides whether to toast /
+   * log / role-gate; this method just does the work.
+   */
+  async autoCarryPending(maxWeeks = 4): Promise<number> {
+    const target = currentWeekMonday();
+
+    // Build the "already carried into target" dedup set.
+    const targetDoc = await this.weekRepo.load(target);
+    const carriedIn = new Set<string>();
+    for (const entry of Object.values(targetDoc?.entries ?? {})) {
+      for (const t of entry.weekTasks ?? []) {
+        if (t.carriedFrom) carriedIn.add(t.carriedFrom);
+      }
+    }
+
+    let count = 0;
+    for (let i = 1; i <= maxWeeks; i++) {
+      const week = addWeeks(target, -i);
+      const doc = await this.weekRepo.load(week);
+      if (!doc) continue;
+      for (const [projectId, entry] of Object.entries(doc.entries)) {
+        for (const task of entry.weekTasks ?? []) {
+          if (task.status === 'completed') continue;
+          if (carriedIn.has(task.id)) continue;
+          await this.carryTask(week, projectId, task.id, target);
+          // Prevent double-carry within this pass if the same source
+          // task somehow appears twice (shouldn't, but cheap guard).
+          carriedIn.add(task.id);
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+
+  /**
    * Copy a task from `fromWeek` into `toWeek`. Preserves due date and
    * assignees. Completed status resets to `todo` (a completed task
    * doesn't logically carry).

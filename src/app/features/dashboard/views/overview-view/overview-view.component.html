@@ -1,0 +1,61 @@
+@if (loading()) {
+  <section class="mt-3 skel-kpis">
+    @for (i of skeletonKpis; track i) {
+      <div class="skel skel-tile"></div>
+    }
+  </section>
+  <div class="skel skel-card mt-3"></div>
+} @else {
+  <section class="mt-3">
+    <app-kpi-cards [kpis]="state.kpis()" />
+  </section>
+
+  <!-- Weekly Health strip removed — it duplicated most of the KPI row
+       (Delayed / On Hold / Completed / Not Set vs Not Filled). The
+       detailed weekly-tracker view lives on the Attention tab. -->
+
+  <!-- Weekly trend chart -->
+  <div class="flat-block mt-3">
+    <app-weekly-trend-chart />
+  </div>
+
+  <!-- Jump-to cards: shortcut into the other three views. -->
+  <div class="jump-grid mt-3">
+    <a routerLink="../attention" class="jump-card jump-card--attention">
+      <div class="jump-icon"><i class="pi pi-flag-fill"></i></div>
+      <div class="jump-body">
+        <h4 class="jump-title">Attention</h4>
+        <p class="jump-sub">
+          @if (attentionCount() === 0) {
+            Nothing needs action right now
+          } @else {
+            {{ attentionCount() }} project{{ attentionCount() === 1 ? '' : 's' }} need action
+          }
+        </p>
+      </div>
+      <i class="pi pi-arrow-right jump-arrow"></i>
+    </a>
+
+    <a routerLink="../analytics" class="jump-card jump-card--analytics">
+      <div class="jump-icon"><i class="pi pi-chart-pie"></i></div>
+      <div class="jump-body">
+        <h4 class="jump-title">Analytics</h4>
+        <p class="jump-sub">
+          Portfolio distribution across {{ state.clientBars().length }} client{{ state.clientBars().length === 1 ? '' : 's' }}
+        </p>
+      </div>
+      <i class="pi pi-arrow-right jump-arrow"></i>
+    </a>
+
+    <a routerLink="../people" class="jump-card jump-card--people">
+      <div class="jump-icon"><i class="pi pi-users"></i></div>
+      <div class="jump-body">
+        <h4 class="jump-title">People</h4>
+        <p class="jump-sub">
+          Performance across {{ state.engineerRows().length }} engineer{{ state.engineerRows().length === 1 ? '' : 's' }}
+        </p>
+      </div>
+      <i class="pi pi-arrow-right jump-arrow"></i>
+    </a>
+  </div>
+}

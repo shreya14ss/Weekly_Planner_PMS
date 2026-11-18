@@ -376,16 +376,27 @@ export class MigrationService {
       await this.clearAll(['user']);
     }
 
+    // Existing users keyed by lower-cased name. Users created in the app
+    // (or the seeded PM) don't share the deterministic legacy id, so an
+    // id-only match would duplicate them on every import.
+    const byName = new Map<string, UserDoc>();
+    if (mode !== 'replace') {
+      for (const u of this.users.all()) byName.set(u.name.trim().toLowerCase(), u);
+    }
+
     for (const r of rows) {
       try {
         const [name, role, pin, email, mobile] = r;
         const nameStr = (name ?? '').toString().trim();
         if (!nameStr) continue;
-        const legacyKey = nameStr.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        const nameKey = nameStr.toLowerCase();
+        const legacyKey = nameKey.replace(/[^a-z0-9]/g, '_');
+        const existing = byName.get(nameKey);
         const doc: UserDoc = {
-          _id: this.userIdFor(legacyKey),
+          ...existing,
+          _id: existing?._id ?? this.userIdFor(legacyKey),
           docType: 'user',
-          createdAt: new Date().toISOString(),
+          createdAt: existing?.createdAt ?? new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           name: nameStr,
           role: this.coerceRole(role),
@@ -393,7 +404,7 @@ export class MigrationService {
           email: (email ?? '').toString(),
           mobile: (mobile ?? '').toString(),
         };
-        await this.db.put(doc);
+        byName.set(nameKey, await this.db.put(doc));
         result.users++;
         result.written++;
       } catch (err) {

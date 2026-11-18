@@ -58,19 +58,25 @@
         for="ap_engineers"
         class="text-[11px] font-bold tracking-wider uppercase text-slate-500 mb-1.5 block"
       >
-        Assigned Engineers <span class="text-rose-600">*</span>
+        Assigned Engineers
       </label>
-      <input
-        id="ap_engineers"
-        pInputText
-        type="text"
+      <p-multiSelect
+        inputId="ap_engineers"
+        [options]="engineerOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="engineers()"
+        (ngModelChange)="engineers.set($event)"
         name="engineers"
-        [ngModel]="engineers().join(', ')"
-        (ngModelChange)="onEngineersInput($event)"
-        placeholder="Name 1, Name 2…"
+        display="chip"
+        placeholder="Choose engineers (optional)"
         class="w-full"
+        [filter]="true"
+        appendTo="body"
       />
-      <div class="text-[11px] text-slate-500 mt-1">Separate multiple names with a comma.</div>
+      <div class="text-[11px] text-slate-500 mt-1">
+        Optional. Selected TLs are added here automatically.
+      </div>
     </div>
 
     <!-- TLs -->
@@ -87,7 +93,7 @@
         optionLabel="label"
         optionValue="value"
         [ngModel]="tls()"
-        (ngModelChange)="tls.set($event)"
+        (ngModelChange)="onTlsChange($event)"
         name="tls"
         display="chip"
         placeholder="Choose TLs responsible for this project"

@@ -91,15 +91,28 @@ export class AddProjectModalComponent {
       .map((u) => ({ label: u.name, value: u.name, role: u.role })),
   );
 
+  /**
+   * Options for the engineer multi-select: every user, plus any names
+   * already on the project (or currently selected) that no longer match
+   * a user doc, so legacy entries still render as chips.
+   */
+  readonly engineerOptions = computed(() => {
+    const names = new Set(this.users.all().map((u) => u.name).filter(Boolean));
+    for (const e of this.editing()?.engineers ?? []) names.add(e);
+    for (const e of this.engineers()) names.add(e);
+    return Array.from(names)
+      .sort((a, b) => a.localeCompare(b))
+      .map((n) => ({ label: n, value: n }));
+  });
+
   readonly isEdit = computed(() => this.editing() !== null);
   readonly title = computed(() => (this.isEdit() ? 'Edit Project' : 'Add New Project'));
 
-  /** All five required fields must be filled before the button is enabled. */
+  /** All four required fields must be filled before the button is enabled. */
   readonly canSave = computed(
     () =>
       this.client().trim().length > 0 &&
       this.name().trim().length > 0 &&
-      this.engineers().filter((e) => e.trim()).length > 0 &&
       this.tls().filter((t) => t.trim()).length > 0 &&
       !!this.status(),
   );
@@ -154,14 +167,20 @@ export class AddProjectModalComponent {
     );
   }
 
-  /** Comma-separated engineer entry — converts the string to a trimmed list. */
-  onEngineersInput(raw: string): void {
-    this.engineers.set(
-      raw
-        .split(',')
-        .map((e) => e.trim())
-        .filter(Boolean),
-    );
+  /**
+   * Keep the engineer list in step with the TL selection: newly selected
+   * TLs are added as engineers, deselected TLs are removed from it.
+   */
+  onTlsChange(next: string[] | null): void {
+    const prev = this.tls();
+    const nextTls = next ?? [];
+    const added = nextTls.filter((t) => !prev.includes(t));
+    const removed = prev.filter((t) => !nextTls.includes(t));
+    this.tls.set(nextTls);
+    this.engineers.update((engs) => {
+      const kept = engs.filter((e) => !removed.includes(e));
+      return [...kept, ...added.filter((t) => !kept.includes(t))];
+    });
   }
 
   async save(): Promise<void> {
@@ -179,10 +198,6 @@ export class AddProjectModalComponent {
     }
     if (!name) {
       this.error.set('Project name is required.');
-      return;
-    }
-    if (engineers.length === 0) {
-      this.error.set('At least one engineer must be assigned.');
       return;
     }
     if (tls.length === 0) {
